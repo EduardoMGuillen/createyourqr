@@ -71,16 +71,18 @@ export default async function RootLayout({
             <nav className="mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-4">
               <Link
                 href="/"
-                className="flex items-center gap-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900 rounded-sm"
+                className="inline-flex items-center focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900 rounded-sm"
               >
-                <Image
-                  src="/logo.png"
-                  alt="CreateYourQR"
-                  width={220}
-                  height={48}
-                  className="h-9 w-auto max-w-[min(220px,55vw)] object-contain object-left"
-                  priority
-                />
+                <span className="inline-flex origin-left scale-[1.15]">
+                  <Image
+                    src="/logo.png"
+                    alt="CreateYourQR"
+                    width={220}
+                    height={48}
+                    className="h-9 w-auto max-w-[min(220px,55vw)] object-contain object-left mix-blend-screen"
+                    priority
+                  />
+                </span>
                 <span className="sr-only">CreateYourQR</span>
               </Link>
               <div className="flex items-center gap-4 text-sm">
