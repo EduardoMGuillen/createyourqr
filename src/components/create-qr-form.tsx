@@ -7,7 +7,13 @@ import { QrContentKind } from "@prisma/client";
 
 import { appUrl } from "@/lib/app-url";
 import {
+  downloadStyledQrPng,
+  triggerDownloadDataUrl,
+} from "@/lib/qr-client-download";
+import {
+  DEFAULT_QR_STYLE_V1,
   normalizeDestinationUrl,
+  qrStyleV1Schema,
   type BarcodePayloadV1,
   type LinkPageThemeV1,
   type QrStyleV1,
@@ -39,16 +45,6 @@ function newLinkRow(): { id: string; label: string; url: string } {
     url: "",
   };
 }
-
-const defaultStyle: QrStyleV1 = {
-  v: 1,
-  fg: "#0a0a0a",
-  bg: "#ffffff",
-  dotsType: "rounded",
-  cornersSquareType: "extra-rounded",
-  cornersDotType: "dot",
-  logoDataUrl: null,
-};
 
 type CreateQrResponse = {
   publicUrl: string;
@@ -89,7 +85,7 @@ export function CreateQrForm() {
   const [linkPageSubtitle, setLinkPageSubtitle] = useState("");
   const [linkPageRows, setLinkPageRows] = useState(() => [newLinkRow()]);
   const [linkTheme, setLinkTheme] = useState<LinkPageThemeV1>(createDefaultLinkTheme);
-  const [style, setStyle] = useState<QrStyleV1>(defaultStyle);
+  const [style, setStyle] = useState<QrStyleV1>(DEFAULT_QR_STYLE_V1);
   const [logoError, setLogoError] = useState<string | null>(null);
   const [result, setResult] = useState<CreateQrResponse | null>(null);
   const [loading, setLoading] = useState(false);
@@ -258,6 +254,14 @@ export function CreateQrForm() {
         return;
       }
 
+      const styleForDownload = (() => {
+        if (data.qr?.styleJson && typeof data.qr.styleJson === "object") {
+          const parsed = qrStyleV1Schema.safeParse(data.qr.styleJson);
+          if (parsed.success) return parsed.data;
+        }
+        return style;
+      })();
+
       setResult(data);
       setDestinationUrl("");
       setEmailAddr("");
@@ -278,6 +282,24 @@ export function CreateQrForm() {
       setLinkPageSubtitle("");
       setLinkPageRows([newLinkRow()]);
       setLinkTheme(createDefaultLinkTheme());
+
+      void (async () => {
+        try {
+          const slug = data.qr?.slug ?? "qr-code";
+          const kind = data.qr?.contentKind ?? contentKind;
+          if (kind === QrContentKind.BARCODE) {
+            if (data.imageDataUrl) {
+              triggerDownloadDataUrl(data.imageDataUrl, `barcode-${slug}.png`);
+            }
+            return;
+          }
+          if (data.publicUrl) {
+            await downloadStyledQrPng(data.publicUrl, styleForDownload, slug);
+          }
+        } catch (e) {
+          console.error("Auto-download failed", e);
+        }
+      })();
     } catch {
       setResult({
         publicUrl: "",

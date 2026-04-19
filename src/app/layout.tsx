@@ -29,7 +29,7 @@ export const metadata: Metadata = {
     template: "%s | CreateYourQR",
   },
   description:
-    "Generate free dynamic QR codes with 5-day lifetime and easy Pro reactivation.",
+    "CreateYourQR — dynamic QR codes, WiFi & contact QRs, linear barcodes (CODE128, EAN-13), link-in-bio pages, and styled exports. Create codes, place them in the wild, scale with Pro when you need them always on.",
   alternates: {
     canonical: "/",
   },
@@ -37,7 +37,7 @@ export const metadata: Metadata = {
     type: "website",
     title: "CreateYourQR",
     description:
-      "Dynamic QR code generator with a freemium model built for campaigns.",
+      "QR codes, barcodes, WiFi joins, and link pages — built for campaigns that ship fast.",
     url: "/",
     siteName: "CreateYourQR",
     images: [{ url: "/logo_header.png", alt: "CreateYourQR" }],

@@ -83,6 +83,17 @@ export const qrStyleV1Schema = z.object({
 
 export type QrStyleV1 = z.infer<typeof qrStyleV1Schema>;
 
+/** Default module look when `styleJson` is missing or invalid (e.g. legacy rows). */
+export const DEFAULT_QR_STYLE_V1: QrStyleV1 = {
+  v: 1,
+  fg: "#0a0a0a",
+  bg: "#ffffff",
+  dotsType: "rounded",
+  cornersSquareType: "extra-rounded",
+  cornersDotType: "dot",
+  logoDataUrl: null,
+};
+
 const MAX_STYLE_JSON_CHARS = 280_000;
 const MAX_LOGO_DATA_URL_CHARS = 240_000;
 

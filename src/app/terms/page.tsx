@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   description: "Terms of Service for CreateYourQR dynamic QR code platform.",
 };
 
-const LAST = "April 19, 2026";
+const LAST = "April 20, 2026";
 
 export default function TermsOfServicePage() {
   return (
@@ -78,15 +78,51 @@ export default function TermsOfServicePage() {
       <section className="space-y-3">
         <h2 className="text-lg font-semibold text-zinc-900">5. Free and paid plans</h2>
         <p>
-          We may offer a free tier with limits (for example, duration of activation and maximum
-          scans per code) as described on our website or in-product messaging. Paid subscriptions
-          are billed through our payment partner; fees, renewal, cancellation, and refunds are
-          governed by the partner’s terms in addition to any summary we provide at checkout.
+          We offer a <strong>Free</strong> tier so you can create real codes, place them in your
+          materials, and see how they perform, and a <strong>Pro</strong> paid subscription for
+          ongoing production use. Paid subscriptions are billed through our payment partner; fees,
+          renewal, cancellation, and refunds are governed by the partner’s terms in addition to any
+          summary we provide at checkout. Pro features are only available while your subscription is
+          active and in good standing.
+        </p>
+        <h3 className="text-base font-semibold text-zinc-900">5.1 Free plan — per-code limits (current product)</h3>
+        <p>
+          Unless we notify you otherwise in the product or at signup, each QR code (or equivalent
+          scannable asset we host under your account) created while you are on the <strong>Free</strong>{" "}
+          plan is subject to <strong>both</strong> of the following limits. The code’s active period
+          ends when <strong>either</strong> limit is reached first:
+        </p>
+        <ul className="list-inside list-disc space-y-2 pl-1">
+          <li>
+            <strong>Time window:</strong> the code remains in an active state for{" "}
+            <strong>five (5) consecutive calendar days</strong> from the time it is created (or
+            from any reset or reactivation we may offer in the product, if applicable).
+          </li>
+          <li>
+            <strong>Scan cap:</strong> the code accepts up to <strong>fifty (50)</strong> successful
+            scans or redirects (or the equivalent counter shown in your dashboard), after which it
+            may no longer resolve to your chosen destination in the same way.
+          </li>
+        </ul>
+        <p>
+          When either limit is reached, the Service may mark the code as expired or disabled, change
+          what end users see when they scan (for example an upgrade or informational page), or
+          require you to subscribe to <strong>Pro</strong> (or another paid tier we offer) before the
+          same slug or asset can again redirect to your content indefinitely. Exact UX may evolve, but
+          the economic intent is that <strong>short trial-style use is free</strong> and{" "}
+          <strong>continued commercial or high-volume use requires a paid plan</strong>.
         </p>
         <p>
-          If a free QR reaches its limits, redirects or landing experiences may change (for example,
-          to inform end users or offer upgrade paths). Pro features are only available while your
-          subscription is active and in good standing.
+          <strong>Pro</strong> removes the Free-plan time and scan caps for eligible codes as
+          implemented in the product at the time of your subscription (for example, substantially
+          higher or unlimited scans and no five-day activation window for those codes). If we change
+          Free or Pro entitlements, we will update this section and/or in-product notices where
+          required.
+        </p>
+        <p>
+          Summary tables on our <Link href="/pricing" className="font-medium text-zinc-900 underline underline-offset-2">Pricing</Link> page are for convenience only; if there is any conflict between a
+          marketing summary and this Agreement, <strong>this section controls</strong> for legal
+          purposes unless we expressly state otherwise in writing.
         </p>
       </section>
 

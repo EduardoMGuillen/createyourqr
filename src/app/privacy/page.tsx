@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   description: "How CreateYourQR collects, uses, and shares personal data.",
 };
 
-const LAST = "April 19, 2026";
+const LAST = "April 20, 2026";
 
 export default function PrivacyPolicyPage() {
   return (
@@ -38,7 +38,12 @@ export default function PrivacyPolicyPage() {
           <li>
             <strong>QR configuration:</strong> destination URLs you enter, optional visual style
             settings (such as colors and optional logo images encoded for preview), and metadata
-            needed to operate codes (for example slugs and plan limits).
+            needed to operate codes (for example slugs and plan tier).{" "}
+            <Link href="/terms" className="font-medium text-zinc-900 underline underline-offset-2">
+              Terms of Service
+            </Link>{" "}
+            define numeric limits for Free vs. Pro (activation window, scan caps, and related
+            behavior).
           </li>
           <li>
             <strong>Billing identifiers:</strong> when you subscribe through PayPal, we process

@@ -3,42 +3,8 @@
 import { useEffect, useRef } from "react";
 import QRCodeStyling from "qr-code-styling";
 
+import { buildQrCodeStylingOptions } from "@/lib/qr-styling-build";
 import type { QrStyleV1 } from "@/lib/validators";
-
-function buildOptions(style: QrStyleV1, data: string, size: number) {
-  const logo = style.logoDataUrl ?? undefined;
-  return {
-    width: size,
-    height: size,
-    type: "canvas" as const,
-    data,
-    margin: 6,
-    qrOptions: {
-      errorCorrectionLevel: logo ? ("H" as const) : ("M" as const),
-    },
-    imageOptions: {
-      hideBackgroundDots: true,
-      imageSize: 0.32,
-      margin: 4,
-    },
-    dotsOptions: {
-      type: style.dotsType,
-      color: style.fg,
-    },
-    cornersSquareOptions: {
-      type: style.cornersSquareType,
-      color: style.fg,
-    },
-    cornersDotOptions: {
-      type: style.cornersDotType,
-      color: style.fg,
-    },
-    backgroundOptions: {
-      color: style.bg,
-    },
-    image: logo,
-  };
-}
 
 type QrStylePreviewProps = {
   data: string;
@@ -67,11 +33,11 @@ export function QrStylePreview({
       try {
         if (!instanceRef.current) {
           instanceRef.current = new QRCodeStyling(
-            buildOptions(style, data, size),
+            buildQrCodeStylingOptions(style, data, size),
           );
           instanceRef.current.append(containerRef.current);
         } else {
-          instanceRef.current.update(buildOptions(style, data, size));
+          instanceRef.current.update(buildQrCodeStylingOptions(style, data, size));
         }
       } catch {
         /* avoid blocking the UI if canvas/styling fails */

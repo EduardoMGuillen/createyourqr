@@ -1,7 +1,7 @@
 {
   "name": "CreateYourQR",
   "short_name": "CreateYourQR",
-  "description": "Free dynamic QR codes with Pro reactivation.",
+  "description": "Dynamic QR codes, WiFi & contact QRs, barcodes (CODE128, EAN-13), link-in-bio pages, styled exports. See Terms for plan rules.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#fafafa",

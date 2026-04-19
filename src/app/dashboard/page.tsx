@@ -1,11 +1,12 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { PlanCode } from "@prisma/client";
 
-import { BillingButton } from "@/components/billing-button";
 import { CreateQrForm } from "@/components/create-qr-form";
+import { DashboardQrActions } from "@/components/dashboard-qr-actions";
 import { getCurrentSession } from "@/lib/auth/session";
+import { appUrl } from "@/lib/app-url";
 import { db } from "@/lib/db";
-import { env } from "@/lib/env";
 import { formatQrDestinationCell } from "@/lib/qr-content";
 
 export const metadata = {
@@ -35,11 +36,12 @@ export default async function DashboardPage() {
         </div>
         <div className="flex items-center gap-3">
           {session.user.planCode !== PlanCode.PRO ? (
-            <BillingButton
-              paypalClientId={env.paypalBrowserClientId}
-              paypalPlanId={env.paypalPlanId}
-              userId={session.user.id}
-            />
+            <Link
+              href="/pricing"
+              className="inline-flex items-center justify-center rounded-md bg-zinc-900 px-4 py-2.5 text-sm font-medium text-white hover:bg-zinc-800"
+            >
+              Upgrade to Pro
+            </Link>
           ) : null}
         </div>
       </section>
@@ -49,7 +51,7 @@ export default async function DashboardPage() {
       <section className="rounded-lg border border-zinc-200 bg-white p-6">
         <h2 className="text-lg font-semibold text-zinc-900">Recent QR codes</h2>
         <div className="mt-4 overflow-x-auto">
-          <table className="w-full min-w-[680px] text-left text-sm">
+          <table className="w-full min-w-[820px] text-left text-sm">
             <thead>
               <tr className="border-b border-zinc-200 text-zinc-600">
                 <th className="px-2 py-2">Slug</th>
@@ -58,6 +60,7 @@ export default async function DashboardPage() {
                 <th className="px-2 py-2">Scans</th>
                 <th className="px-2 py-2">Expires</th>
                 <th className="px-2 py-2">Destination / content</th>
+                <th className="px-2 py-2">Preview</th>
               </tr>
             </thead>
             <tbody>
@@ -73,11 +76,20 @@ export default async function DashboardPage() {
                   <td className="max-w-[280px] truncate px-2 py-2 text-zinc-600">
                     {formatQrDestinationCell(qr)}
                   </td>
+                  <td className="px-2 py-2 align-top">
+                    <DashboardQrActions
+                      slug={qr.slug}
+                      contentKind={qr.contentKind}
+                      publicUrl={`${appUrl}/qr/${qr.slug}`}
+                      styleJson={qr.styleJson}
+                      payloadJson={qr.payloadJson}
+                    />
+                  </td>
                 </tr>
               ))}
               {qrs.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-2 py-5 text-zinc-500">
+                  <td colSpan={7} className="px-2 py-5 text-zinc-500">
                     No QR codes yet. Create your first one above.
                   </td>
                 </tr>
