@@ -1,7 +1,8 @@
+import { appUrl } from "@/lib/app-url";
 import { PAYPAL_DEFAULT_PLAN_ID } from "@/lib/paypal-defaults";
 
 export const env = {
-  appUrl: process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000",
+  appUrl,
   /**
    * PayPal REST Basic auth (same client id as the JS SDK). Prefer the public client id var used
    * on Vercel: `NEXT_PUBLIC_PAYPAL_CLIENT_ID` + `PAYPAL_CLIENT_SECRET` + `PAYPAL_API_BASE`.

@@ -3,6 +3,7 @@ import type { Prisma } from "@prisma/client";
 import { PlanCode, QrContentKind } from "@prisma/client";
 
 import { getCurrentSession } from "@/lib/auth/session";
+import { appUrl } from "@/lib/app-url";
 import { db } from "@/lib/db";
 import { isMissingStyleJsonColumn } from "@/lib/prisma-qr-errors";
 import {
@@ -172,7 +173,7 @@ async function createProQrResponse(params: {
           : {}),
       },
     });
-    const publicUrl = `${process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"}/qr/${slug}`;
+    const publicUrl = `${appUrl}/qr/${slug}`;
     let imageDataUrl: string | undefined;
     if (params.contentKind === QrContentKind.BARCODE && params.payloadJson !== undefined) {
       const parsed = barcodePayloadSchema.safeParse(params.payloadJson);
@@ -188,7 +189,7 @@ async function createProQrResponse(params: {
   } catch (e) {
     if (params.styleJson !== undefined && isMissingStyleJsonColumn(e)) {
       const qr = await db.qrCode.create({ data: base });
-      const publicUrl = `${process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"}/qr/${slug}`;
+      const publicUrl = `${appUrl}/qr/${slug}`;
       let imageDataUrl: string | undefined;
       if (params.contentKind === QrContentKind.BARCODE && params.payloadJson !== undefined) {
         const parsed = barcodePayloadSchema.safeParse(params.payloadJson);

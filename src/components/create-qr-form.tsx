@@ -5,6 +5,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { QrContentKind } from "@prisma/client";
 
+import { appUrl } from "@/lib/app-url";
 import {
   normalizeDestinationUrl,
   type BarcodePayloadV1,
@@ -64,9 +65,7 @@ function previewDataUrl(appBase: string) {
 }
 
 export function CreateQrForm() {
-  const appBase =
-    process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "") ??
-    (typeof window !== "undefined" ? window.location.origin : "http://localhost:3000");
+  const appBase = appUrl.replace(/\/$/, "");
 
   const logoInputRef = useRef<HTMLInputElement>(null);
   const [contentKind, setContentKind] = useState<QrContentKind>(QrContentKind.URL);

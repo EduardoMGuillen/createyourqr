@@ -7,6 +7,7 @@ import { Providers } from "@/components/providers";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { authOptions } from "@/lib/auth/config";
+import { appUrl } from "@/lib/app-url";
 import "./globals.css";
 
 const GA_MEASUREMENT_ID = "G-N5SPMTGNKT";
@@ -22,9 +23,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(
-    process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000",
-  ),
+  metadataBase: new URL(appUrl),
   title: {
     default: "CreateYourQR - Free Dynamic QR Generator",
     template: "%s | CreateYourQR",

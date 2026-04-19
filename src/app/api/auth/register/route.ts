@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { hashPassword } from "@/lib/auth/password";
+import { appUrl } from "@/lib/app-url";
 import { db } from "@/lib/db";
 import { sendWelcomeEmail } from "@/server/email/send-welcome-email";
 
@@ -45,7 +46,6 @@ export async function POST(request: Request) {
     },
   });
 
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
   const welcomeResult = await sendWelcomeEmail({
     to: user.email,
     name: user.name,
