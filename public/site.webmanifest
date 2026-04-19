@@ -1,0 +1,23 @@
+{
+  "name": "CreateYourQR",
+  "short_name": "CreateYourQR",
+  "description": "Free dynamic QR codes with Pro reactivation.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#fafafa",
+  "theme_color": "#0f172a",
+  "icons": [
+    {
+      "src": "/logo500x500.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/logo500x500.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

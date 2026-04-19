@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import Image from "next/image";
 import Link from "next/link";
 import { getServerSession } from "next-auth";
 
@@ -37,7 +38,19 @@ export const metadata: Metadata = {
       "Dynamic QR code generator with a freemium model built for campaigns.",
     url: "/",
     siteName: "CreateYourQR",
+    images: [{ url: "/logo.png", alt: "CreateYourQR" }],
   },
+  icons: {
+    icon: [{ url: "/logo500x500.png", type: "image/png", sizes: "512x512" }],
+    apple: [{ url: "/logo500x500.png", sizes: "180x180", type: "image/png" }],
+    shortcut: "/logo500x500.png",
+  },
+  appleWebApp: {
+    capable: true,
+    title: "CreateYourQR",
+    statusBarStyle: "default",
+  },
+  manifest: "/site.webmanifest",
 };
 
 export default async function RootLayout({
@@ -56,8 +69,19 @@ export default async function RootLayout({
         <Providers session={session}>
           <header className="border-b border-zinc-200 bg-white">
             <nav className="mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-4">
-              <Link href="/" className="text-lg font-semibold tracking-tight">
-                CreateYourQR
+              <Link
+                href="/"
+                className="flex items-center gap-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900 rounded-sm"
+              >
+                <Image
+                  src="/logo.png"
+                  alt="CreateYourQR"
+                  width={220}
+                  height={48}
+                  className="h-9 w-auto max-w-[min(220px,55vw)] object-contain object-left"
+                  priority
+                />
+                <span className="sr-only">CreateYourQR</span>
               </Link>
               <div className="flex items-center gap-4 text-sm">
                 <Link href="/pricing" className="text-zinc-700 hover:text-zinc-900">
