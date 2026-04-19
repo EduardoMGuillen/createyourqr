@@ -3,7 +3,6 @@
 import type { FormEvent } from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
 import type { QrCode } from "@prisma/client";
 import { QrContentKind } from "@prisma/client";
 
@@ -66,7 +65,6 @@ function previewDataUrl(appBase: string) {
 }
 
 export function CreateQrForm() {
-  const router = useRouter();
   const appBase = appUrl.replace(/\/$/, "");
 
   const logoInputRef = useRef<HTMLInputElement>(null);
@@ -324,8 +322,6 @@ export function CreateQrForm() {
       setLinkTheme(createDefaultLinkTheme());
       setLinkPageLogoDataUrl(null);
       setLinkPageLogoError(null);
-
-      router.refresh();
 
       if (data.qr?.id && typeof window !== "undefined") {
         const openPreview = window.matchMedia("(max-width: 767px)").matches;

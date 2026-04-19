@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react";
 
 import { DashboardQrActions } from "@/components/dashboard-qr-actions";
 import { QrPreviewModal } from "@/components/qr-preview-modal";
-import { formatQrDestinationCell } from "@/lib/qr-content";
+import { formatQrDestinationCell, formatQrScansDisplay } from "@/lib/qr-content";
 
 type CyqrCreatedDetail = {
   qr: QrCode;
@@ -95,9 +95,7 @@ export function DashboardRecentCodes({ initialQrs, appUrl }: DashboardRecentCode
             <dl className="mt-3 grid grid-cols-2 gap-2 text-xs text-zinc-600">
               <div>
                 <dt className="font-medium text-zinc-400">Scans</dt>
-                <dd>
-                  {qr.scanCount} / {qr.maxScans}
-                </dd>
+                <dd>{formatQrScansDisplay(qr.scanCount, qr.maxScans)}</dd>
               </div>
               <div>
                 <dt className="font-medium text-zinc-400">Expires</dt>
@@ -143,9 +141,7 @@ export function DashboardRecentCodes({ initialQrs, appUrl }: DashboardRecentCode
                 <td className="px-2 py-2 font-medium text-zinc-900">{qr.slug}</td>
                 <td className="px-2 py-2 text-zinc-700">{qr.contentKind}</td>
                 <td className="px-2 py-2">{qr.status}</td>
-                <td className="px-2 py-2">
-                  {qr.scanCount} / {qr.maxScans}
-                </td>
+                <td className="px-2 py-2">{formatQrScansDisplay(qr.scanCount, qr.maxScans)}</td>
                 <td className="px-2 py-2">{new Date(qr.expiresAt).toLocaleDateString()}</td>
                 <td className="max-w-[280px] truncate px-2 py-2 text-zinc-600">
                   {formatQrDestinationCell(qr)}

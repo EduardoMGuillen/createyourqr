@@ -174,6 +174,16 @@ export function formatQrDestinationCell(qr: {
   }
 }
 
+/** Pro tier cap (see `paypal-service`, `createProQrResponse`). */
+const QR_MAX_SCANS_UNLIMITED = 999_999_999;
+
+export function formatQrScansDisplay(scanCount: number, maxScans: number): string {
+  if (maxScans >= QR_MAX_SCANS_UNLIMITED) {
+    return `${scanCount} / Unlimited`;
+  }
+  return `${scanCount} / ${maxScans}`;
+}
+
 /** HTML page when opening a saved static barcode by its `/qr/slug` link (image is regenerated server-side). */
 export function barcodeHtmlPage(imageDataUrl: string, symbology: string, data: string): string {
   const safeSym = escapeHtml(symbology);
