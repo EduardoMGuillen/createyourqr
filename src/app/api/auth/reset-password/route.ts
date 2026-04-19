@@ -6,8 +6,8 @@ import { hashResetToken, hashPassword } from "@/lib/auth/password";
 import { db } from "@/lib/db";
 
 const resetSchema = z.object({
-  token: z.string().min(10),
-  password: z.string().min(8),
+  token: z.string().min(10).max(128),
+  password: z.string().min(8).max(128),
 });
 
 export async function POST(request: Request) {

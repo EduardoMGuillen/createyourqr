@@ -2,7 +2,7 @@ import type { Session } from "next-auth";
 import Image from "next/image";
 import Link from "next/link";
 
-import { LogoutButton } from "@/components/logout-button";
+import { SiteHeaderNav } from "@/components/site-header-nav";
 
 type SiteHeaderProps = {
   session: Session | null;
@@ -12,7 +12,7 @@ export function SiteHeader({ session }: SiteHeaderProps) {
   const user = session?.user;
 
   return (
-    <header className="border-b border-zinc-200 bg-white">
+    <header className="relative z-50 border-b border-zinc-200 bg-white">
       <nav className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-6 py-4">
         <Link
           href="/"
@@ -28,58 +28,7 @@ export function SiteHeader({ session }: SiteHeaderProps) {
           />
           <span className="sr-only">CreateYourQR</span>
         </Link>
-        <div className="flex flex-wrap items-center justify-end gap-3 text-sm">
-          <Link href="/" className="text-zinc-700 hover:text-zinc-900">
-            Home
-          </Link>
-          <Link href="/pricing" className="text-zinc-700 hover:text-zinc-900">
-            Pricing
-          </Link>
-          <span className="hidden text-zinc-300 sm:inline" aria-hidden>
-            |
-          </span>
-          <Link
-            href="/terms"
-            className="text-zinc-500 hover:text-zinc-800 sm:text-sm"
-          >
-            Terms
-          </Link>
-          <Link
-            href="/privacy"
-            className="text-zinc-500 hover:text-zinc-800 sm:text-sm"
-          >
-            Privacy
-          </Link>
-          <Link
-            href="/cookies"
-            className="text-zinc-500 hover:text-zinc-800 sm:text-sm"
-          >
-            Cookies
-          </Link>
-          {user ? (
-            <>
-              <Link href="/dashboard" className="text-zinc-700 hover:text-zinc-900">
-                Dashboard
-              </Link>
-              <LogoutButton />
-            </>
-          ) : (
-            <>
-              <Link
-                href="/register"
-                className="text-zinc-700 hover:text-zinc-900 underline-offset-4 hover:underline"
-              >
-                Register
-              </Link>
-              <Link
-                href="/login"
-                className="rounded-md border border-zinc-300 px-3 py-1.5 font-medium hover:bg-zinc-100"
-              >
-                Log in
-              </Link>
-            </>
-          )}
-        </div>
+        <SiteHeaderNav isAuthenticated={Boolean(user)} />
       </nav>
     </header>
   );

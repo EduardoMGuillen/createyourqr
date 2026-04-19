@@ -176,29 +176,6 @@ export default function Home() {
           </div>
         </dl>
       </section>
-
-      <footer className="mt-auto border-t border-zinc-200 bg-zinc-50">
-        <div className="mx-auto flex w-full max-w-6xl flex-col gap-4 px-6 py-10 text-sm text-zinc-600 md:flex-row md:items-center md:justify-between">
-          <p>© {new Date().getFullYear()} CreateYourQR</p>
-          <div className="flex flex-wrap gap-x-6 gap-y-2">
-            <Link href="/terms" className="text-zinc-800 underline-offset-4 hover:underline">
-              Terms of Service
-            </Link>
-            <Link href="/privacy" className="text-zinc-800 underline-offset-4 hover:underline">
-              Privacy Policy
-            </Link>
-            <Link href="/cookies" className="text-zinc-800 underline-offset-4 hover:underline">
-              Cookie Policy
-            </Link>
-            <Link href="/pricing" className="text-zinc-800 underline-offset-4 hover:underline">
-              Pricing
-            </Link>
-            <Link href="/login" className="text-zinc-800 underline-offset-4 hover:underline">
-              Log in
-            </Link>
-          </div>
-        </div>
-      </footer>
     </main>
   );
 }

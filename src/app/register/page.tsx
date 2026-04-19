@@ -8,10 +8,12 @@ import { AuthUrlErrorBanner } from "@/components/auth-url-error-banner";
 import { GoogleSignInButton } from "@/components/google-sign-in-button";
 import { PasswordField } from "@/components/password-field";
 import { RegistrationSuccessDialog } from "@/components/registration-success-dialog";
+import type { ResendEmailFailureCode } from "@/server/email/resend-failure-codes";
 
 type RegisterResponse = {
   user?: { email: string };
   welcomeEmailSent?: boolean;
+  welcomeEmailFailureCode?: ResendEmailFailureCode;
 };
 
 export default function RegisterPage() {
@@ -20,6 +22,8 @@ export default function RegisterPage() {
   const [showSuccess, setShowSuccess] = useState(false);
   const [successEmail, setSuccessEmail] = useState("");
   const [welcomeEmailSent, setWelcomeEmailSent] = useState(false);
+  const [welcomeEmailFailureCode, setWelcomeEmailFailureCode] =
+    useState<ResendEmailFailureCode | null>(null);
   const [continuing, setContinuing] = useState(false);
   const pendingPasswordRef = useRef("");
 
@@ -52,6 +56,9 @@ export default function RegisterPage() {
     pendingPasswordRef.current = payload.password;
     setSuccessEmail(data.user?.email ?? payload.email);
     setWelcomeEmailSent(Boolean(data.welcomeEmailSent));
+    setWelcomeEmailFailureCode(
+      data.welcomeEmailSent ? null : (data.welcomeEmailFailureCode ?? null),
+    );
     setShowSuccess(true);
     setLoading(false);
   }
@@ -92,6 +99,7 @@ export default function RegisterPage() {
         open={showSuccess}
         email={successEmail}
         emailSent={welcomeEmailSent}
+        emailFailureCode={welcomeEmailFailureCode}
         continuing={continuing}
         onContinue={handleContinueAfterSuccess}
       />

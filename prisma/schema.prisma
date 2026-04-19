@@ -24,6 +24,19 @@ enum QrStatus {
   DISABLED
 }
 
+enum QrContentKind {
+  URL
+  EMAIL
+  PHONE
+  SMS
+  TEXT
+  WIFI
+  /** Static linear barcode (image encodes `data` directly, not the public /qr URL). */
+  BARCODE
+  /** Dynamic link-in-bio page (HTML at `/qr/slug`); customization in `payloadJson`. */
+  LINK_PAGE
+}
+
 enum SubscriptionStatus {
   ACTIVE
   CANCELED
@@ -97,12 +110,16 @@ model PasswordResetToken {
 }
 
 model QrCode {
-  id             String    @id @default(cuid())
+  id             String         @id @default(cuid())
   userId         String
-  slug           String    @unique
-  destinationUrl String
+  slug           String         @unique
+  contentKind    QrContentKind  @default(URL)
+  /** HTTP(S) target when `contentKind` is URL; null for other kinds. */
+  destinationUrl String?
+  /** Typed payload for EMAIL, PHONE, SMS, TEXT, WIFI (versioned JSON). */
+  payloadJson    Json?
   styleJson      Json?
-  status         QrStatus  @default(ACTIVE)
+  status         QrStatus       @default(ACTIVE)
   expiresAt      DateTime
   scanCount      Int       @default(0)
   maxScans       Int       @default(50)

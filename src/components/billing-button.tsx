@@ -4,6 +4,8 @@ import { PayPalButtons, PayPalScriptProvider } from "@paypal/react-paypal-js";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 
+import { PAYPAL_DEFAULT_PLAN_ID } from "@/lib/paypal-defaults";
+
 type BillingButtonProps = {
   paypalClientId: string;
   paypalPlanId: string;
@@ -27,7 +29,7 @@ function useEffectivePayPalConfig(props: { paypalClientId: string; paypalPlanId:
       props.paypalPlanId.trim() ||
       (typeof process !== "undefined" &&
         process.env.NEXT_PUBLIC_PAYPAL_PLAN_ID?.trim()) ||
-      "";
+      PAYPAL_DEFAULT_PLAN_ID;
     return { clientId, planId };
   }, [props.paypalClientId, props.paypalPlanId]);
 }
@@ -59,20 +61,6 @@ export function BillingButton({
     );
   }
 
-  if (!planId) {
-    return (
-      <p className={isDark ? "text-sm text-amber-200" : "text-sm text-amber-800"}>
-        PayPal <strong>subscription plan id</strong> is missing. Smart Buttons need a billing plan
-        id (starts with <code className={codeClass}>P-</code>). In PayPal Dashboard create a
-        subscription plan, then set{" "}
-        <code className={codeClass}>PAYPAL_PLAN_ID</code> or{" "}
-        <code className={codeClass}>NEXT_PUBLIC_PAYPAL_PLAN_ID</code> in Vercel. That value is
-        different from the client id: it identifies the $15/mo (or your) plan, not the app
-        credentials.
-      </p>
-    );
-  }
-
   return (
     <div className="space-y-2">
       <p
@@ -91,8 +79,8 @@ export function BillingButton({
       >
         <PayPalButtons
           style={{
-            shape: "pill",
-            color: "silver",
+            shape: "rect",
+            color: "gold",
             layout: "vertical",
             label: "subscribe",
           }}

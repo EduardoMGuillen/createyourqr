@@ -1,11 +1,15 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { getServerSession } from "next-auth";
+import Script from "next/script";
 
 import { Providers } from "@/components/providers";
+import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { authOptions } from "@/lib/auth/config";
 import "./globals.css";
+
+const GA_MEASUREMENT_ID = "G-N5SPMTGNKT";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -40,7 +44,7 @@ export const metadata: Metadata = {
     images: [{ url: "/logo_header.png", alt: "CreateYourQR" }],
   },
   icons: {
-    icon: [{ url: "/logo500x500.png", type: "image/png", sizes: "512x512" }],
+    icon: [{ url: "/logo500x500.png", type: "image/png", sizes: "500x500" }],
     apple: [{ url: "/logo500x500.png", sizes: "180x180", type: "image/png" }],
     shortcut: "/logo500x500.png",
   },
@@ -65,9 +69,22 @@ export default async function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-zinc-50 text-zinc-900">
+        <Script
+          src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
+          strategy="afterInteractive"
+        />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', '${GA_MEASUREMENT_ID}');
+          `}
+        </Script>
         <Providers session={session}>
           <SiteHeader session={session} />
-          {children}
+          <div className="flex min-h-0 flex-1 flex-col">{children}</div>
+          <SiteFooter />
         </Providers>
       </body>
     </html>

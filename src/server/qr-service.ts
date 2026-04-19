@@ -1,13 +1,15 @@
 import { addDays, isAfter } from "date-fns";
 import { createHash } from "crypto";
-import { QrStatus } from "@prisma/client";
+import { QrContentKind, QrStatus } from "@prisma/client";
 import { nanoid } from "nanoid";
 import QRCode from "qrcode";
 
 import type { Prisma } from "@prisma/client";
 
+import { renderBarcodePngDataUrl } from "@/lib/barcode";
 import { db } from "@/lib/db";
 import { env } from "@/lib/env";
+import { barcodePayloadSchema } from "@/lib/validators";
 
 function buildSlug() {
   return nanoid(10);
@@ -19,19 +21,26 @@ export function getPublicQrUrl(slug: string) {
 
 export async function createFreeQr(params: {
   userId: string;
-  destinationUrl: string;
+  contentKind?: QrContentKind;
+  destinationUrl: string | null;
+  payloadJson?: Prisma.InputJsonValue | null;
   maxScans?: number;
   /** Visual-only styling; when set we skip server-side `qrcode` PNG (use client `qr-code-styling`). */
   styleJson?: Prisma.InputJsonValue;
 }) {
   const slug = buildSlug();
   const expiresAt = addDays(new Date(), 5);
+  const contentKind = params.contentKind ?? QrContentKind.URL;
 
   const qr = await db.qrCode.create({
     data: {
       userId: params.userId,
       slug,
+      contentKind,
       destinationUrl: params.destinationUrl,
+      ...(params.payloadJson !== undefined && params.payloadJson !== null
+        ? { payloadJson: params.payloadJson }
+        : {}),
       expiresAt,
       maxScans: params.maxScans ?? 50,
       ...(params.styleJson !== undefined
@@ -42,13 +51,19 @@ export async function createFreeQr(params: {
 
   const publicUrl = getPublicQrUrl(slug);
   // Custom styles are rendered on the client with `qr-code-styling` (no Node canvas pipeline here).
-  const imageDataUrl =
-    params.styleJson === undefined
-      ? await QRCode.toDataURL(publicUrl, {
-          errorCorrectionLevel: "M",
-          width: 400,
-        })
-      : undefined;
+  let imageDataUrl: string | undefined;
+  if (contentKind === QrContentKind.BARCODE) {
+    const parsed = barcodePayloadSchema.safeParse(params.payloadJson);
+    if (!parsed.success) {
+      throw new Error("Invalid barcode payload.");
+    }
+    imageDataUrl = await renderBarcodePngDataUrl(parsed.data);
+  } else if (params.styleJson === undefined) {
+    imageDataUrl = await QRCode.toDataURL(publicUrl, {
+      errorCorrectionLevel: "M",
+      width: 400,
+    });
+  }
 
   return {
     qr,

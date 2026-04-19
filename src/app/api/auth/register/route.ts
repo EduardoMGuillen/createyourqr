@@ -56,6 +56,9 @@ export async function POST(request: Request) {
     {
       user,
       welcomeEmailSent: welcomeResult.sent,
+      ...(!welcomeResult.sent
+        ? { welcomeEmailFailureCode: welcomeResult.failureCode }
+        : {}),
     },
     { status: 201 },
   );

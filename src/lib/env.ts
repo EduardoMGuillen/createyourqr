@@ -1,3 +1,5 @@
+import { PAYPAL_DEFAULT_PLAN_ID } from "@/lib/paypal-defaults";
+
 export const env = {
   appUrl: process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000",
   /**
@@ -14,13 +16,16 @@ export const env = {
     process.env.PAYPAL_CLIENT_ID?.trim() ||
     "",
   paypalClientSecret: process.env.PAYPAL_CLIENT_SECRET?.trim() ?? "",
-  /** Subscription billing plan id (`P-...`). Create it in PayPal Dashboard; separate from client id. */
+  /**
+   * Subscription billing plan id (`P-...`). Env vars override the baked-in default (same as
+   * PayPal Button Factory `plan_id` in `createSubscription`).
+   */
   paypalPlanId:
     process.env.PAYPAL_PLAN_ID?.trim() ||
     process.env.NEXT_PUBLIC_PAYPAL_PLAN_ID?.trim() ||
     process.env.PAYPAL_SUBSCRIPTION_PLAN_ID?.trim() ||
     process.env.PAYPAL_BILLING_PLAN_ID?.trim() ||
-    "",
+    PAYPAL_DEFAULT_PLAN_ID,
   paypalWebhookId: process.env.PAYPAL_WEBHOOK_ID ?? "",
   /**
    * REST API host (OAuth, billing, webhooks). Prefer `PAYPAL_API_BASE` — same pattern as a
