@@ -57,21 +57,29 @@ export function QrStylePreview({
   const instanceRef = useRef<QRCodeStyling | null>(null);
   const styleKey = JSON.stringify(style);
 
-  // `styleKey` tracks visual options even when the parent recreates the `style` object.
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
 
+    let cancelled = false;
     const timer = window.setTimeout(() => {
-      if (!instanceRef.current) {
-        instanceRef.current = new QRCodeStyling(buildOptions(style, data, size));
-        instanceRef.current.append(el);
-      } else {
-        instanceRef.current.update(buildOptions(style, data, size));
+      if (cancelled || !containerRef.current) return;
+      try {
+        if (!instanceRef.current) {
+          instanceRef.current = new QRCodeStyling(
+            buildOptions(style, data, size),
+          );
+          instanceRef.current.append(containerRef.current);
+        } else {
+          instanceRef.current.update(buildOptions(style, data, size));
+        }
+      } catch {
+        /* avoid blocking the UI if canvas/styling fails */
       }
     }, 200);
 
     return () => {
+      cancelled = true;
       window.clearTimeout(timer);
     };
   }, [data, styleKey, size, style]);
@@ -79,15 +87,15 @@ export function QrStylePreview({
   useEffect(() => {
     const el = containerRef.current;
     return () => {
-      el?.replaceChildren();
       instanceRef.current = null;
+      el?.replaceChildren();
     };
   }, []);
 
   return (
     <div
       ref={containerRef}
-      className={`flex items-center justify-center rounded-lg border border-zinc-200 bg-white p-3 ${className}`}
+      className={`flex min-h-[240px] items-center justify-center rounded-lg border border-zinc-200 bg-white p-3 ${className}`}
     />
   );
 }

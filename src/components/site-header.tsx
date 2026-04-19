@@ -35,6 +35,27 @@ export function SiteHeader({ session }: SiteHeaderProps) {
           <Link href="/pricing" className="text-zinc-700 hover:text-zinc-900">
             Pricing
           </Link>
+          <span className="hidden text-zinc-300 sm:inline" aria-hidden>
+            |
+          </span>
+          <Link
+            href="/terms"
+            className="text-zinc-500 hover:text-zinc-800 sm:text-sm"
+          >
+            Terms
+          </Link>
+          <Link
+            href="/privacy"
+            className="text-zinc-500 hover:text-zinc-800 sm:text-sm"
+          >
+            Privacy
+          </Link>
+          <Link
+            href="/cookies"
+            className="text-zinc-500 hover:text-zinc-800 sm:text-sm"
+          >
+            Cookies
+          </Link>
           {user ? (
             <>
               <Link href="/dashboard" className="text-zinc-700 hover:text-zinc-900">

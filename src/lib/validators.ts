@@ -24,7 +24,19 @@ export const destinationUrlInputSchema = z
   .transform(normalizeDestinationUrl)
   .pipe(destinationUrlSchema);
 
-const hexColor = z.string().regex(/^#[0-9a-fA-F]{6}$/, "Colors must be #RRGGBB.");
+function normalizeHex6(input: string) {
+  const s = input.trim();
+  if (/^#[0-9a-fA-F]{3}$/.test(s)) {
+    const [, r, g, b] = s;
+    return `#${r}${r}${g}${g}${b}${b}`.toLowerCase();
+  }
+  return s.toLowerCase();
+}
+
+const hexColor = z
+  .string()
+  .transform(normalizeHex6)
+  .pipe(z.string().regex(/^#[0-9a-fA-F]{6}$/, "Colors must be #RRGGBB."));
 
 const dotType = z.enum([
   "dots",

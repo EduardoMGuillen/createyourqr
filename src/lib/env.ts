@@ -1,19 +1,25 @@
 export const env = {
   appUrl: process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000",
-  /** Server-to-server PayPal (Basic auth). Falls back to NEXT_PUBLIC for local dev parity. */
+  /**
+   * PayPal REST Basic auth (same client id as the JS SDK). Prefer the public client id var used
+   * on Vercel: `NEXT_PUBLIC_PAYPAL_CLIENT_ID` + `PAYPAL_CLIENT_SECRET` + `PAYPAL_API_BASE`.
+   */
   paypalClientId:
-    process.env.PAYPAL_CLIENT_ID?.trim() ||
     process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID?.trim() ||
+    process.env.PAYPAL_CLIENT_ID?.trim() ||
     "",
-  /** Passed to the browser PayPal JS SDK (Smart Buttons). */
+  /** Browser PayPal JS SDK (Smart Buttons). */
   paypalBrowserClientId:
     process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID?.trim() ||
     process.env.PAYPAL_CLIENT_ID?.trim() ||
     "",
-  paypalClientSecret: process.env.PAYPAL_CLIENT_SECRET ?? "",
+  paypalClientSecret: process.env.PAYPAL_CLIENT_SECRET?.trim() ?? "",
+  /** Subscription billing plan id (`P-...`). Create it in PayPal Dashboard; separate from client id. */
   paypalPlanId:
     process.env.PAYPAL_PLAN_ID?.trim() ||
     process.env.NEXT_PUBLIC_PAYPAL_PLAN_ID?.trim() ||
+    process.env.PAYPAL_SUBSCRIPTION_PLAN_ID?.trim() ||
+    process.env.PAYPAL_BILLING_PLAN_ID?.trim() ||
     "",
   paypalWebhookId: process.env.PAYPAL_WEBHOOK_ID ?? "",
   /**

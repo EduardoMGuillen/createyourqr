@@ -3,7 +3,6 @@ import { PlanCode } from "@prisma/client";
 
 import { BillingButton } from "@/components/billing-button";
 import { CreateQrForm } from "@/components/create-qr-form";
-import { LogoutButton } from "@/components/logout-button";
 import { getCurrentSession } from "@/lib/auth/session";
 import { db } from "@/lib/db";
 import { env } from "@/lib/env";
@@ -41,7 +40,6 @@ export default async function DashboardPage() {
               userId={session.user.id}
             />
           ) : null}
-          <LogoutButton />
         </div>
       </section>
 

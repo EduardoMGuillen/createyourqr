@@ -2,7 +2,7 @@
 
 import { PayPalButtons, PayPalScriptProvider } from "@paypal/react-paypal-js";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 type BillingButtonProps = {
   paypalClientId: string;
@@ -11,6 +11,26 @@ type BillingButtonProps = {
   /** Use `dark` on dark backgrounds (e.g. pricing Pro card). */
   variant?: "light" | "dark";
 };
+
+/**
+ * Merge server props with `NEXT_PUBLIC_*` inlined for the client bundle (Vercel), in case the
+ * server snapshot was empty.
+ */
+function useEffectivePayPalConfig(props: { paypalClientId: string; paypalPlanId: string }) {
+  return useMemo(() => {
+    const clientId =
+      props.paypalClientId.trim() ||
+      (typeof process !== "undefined" &&
+        process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID?.trim()) ||
+      "";
+    const planId =
+      props.paypalPlanId.trim() ||
+      (typeof process !== "undefined" &&
+        process.env.NEXT_PUBLIC_PAYPAL_PLAN_ID?.trim()) ||
+      "";
+    return { clientId, planId };
+  }, [props.paypalClientId, props.paypalPlanId]);
+}
 
 export function BillingButton({
   paypalClientId,
@@ -21,39 +41,34 @@ export function BillingButton({
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const isDark = variant === "dark";
+  const { clientId, planId } = useEffectivePayPalConfig({ paypalClientId, paypalPlanId });
 
-  if (!paypalClientId || !paypalPlanId) {
+  const codeClass = isDark
+    ? "rounded bg-zinc-800 px-1 text-amber-100"
+    : "rounded bg-amber-100 px-1";
+
+  if (!clientId) {
     return (
-      <p
-        className={
-          isDark ? "text-sm text-amber-200" : "text-sm text-amber-800"
-        }
-      >
-        PayPal billing is not configured. Add{" "}
-        <code
-          className={
-            isDark ? "rounded bg-zinc-800 px-1 text-amber-100" : "rounded bg-amber-100 px-1"
-          }
-        >
-          NEXT_PUBLIC_PAYPAL_CLIENT_ID
-        </code>{" "}
-        and{" "}
-        <code
-          className={
-            isDark ? "rounded bg-zinc-800 px-1 text-amber-100" : "rounded bg-amber-100 px-1"
-          }
-        >
-          PAYPAL_PLAN_ID
-        </code>{" "}
-        (or{" "}
-        <code
-          className={
-            isDark ? "rounded bg-zinc-800 px-1 text-amber-100" : "rounded bg-amber-100 px-1"
-          }
-        >
-          NEXT_PUBLIC_PAYPAL_PLAN_ID
-        </code>
-        ) in your environment.
+      <p className={isDark ? "text-sm text-amber-200" : "text-sm text-amber-800"}>
+        PayPal client id is missing. Add{" "}
+        <code className={codeClass}>NEXT_PUBLIC_PAYPAL_CLIENT_ID</code> in Vercel (from the PayPal
+        Developer app). <code className={codeClass}>PAYPAL_API_BASE</code> and{" "}
+        <code className={codeClass}>PAYPAL_CLIENT_SECRET</code> are used on the server for REST
+        calls.
+      </p>
+    );
+  }
+
+  if (!planId) {
+    return (
+      <p className={isDark ? "text-sm text-amber-200" : "text-sm text-amber-800"}>
+        PayPal <strong>subscription plan id</strong> is missing. Smart Buttons need a billing plan
+        id (starts with <code className={codeClass}>P-</code>). In PayPal Dashboard create a
+        subscription plan, then set{" "}
+        <code className={codeClass}>PAYPAL_PLAN_ID</code> or{" "}
+        <code className={codeClass}>NEXT_PUBLIC_PAYPAL_PLAN_ID</code> in Vercel. That value is
+        different from the client id: it identifies the $15/mo (or your) plan, not the app
+        credentials.
       </p>
     );
   }
@@ -69,7 +84,7 @@ export function BillingButton({
       </p>
       <PayPalScriptProvider
         options={{
-          clientId: paypalClientId,
+          clientId,
           vault: true,
           intent: "subscription",
         }}
@@ -83,7 +98,7 @@ export function BillingButton({
           }}
           createSubscription={(_data, actions) =>
             actions.subscription.create({
-              plan_id: paypalPlanId,
+              plan_id: planId,
               custom_id: userId,
             })
           }
