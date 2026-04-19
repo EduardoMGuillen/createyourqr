@@ -75,6 +75,10 @@ export async function sendWelcomeEmail(params: {
       }),
     });
 
+    if (result.data?.id) {
+      return { sent: true };
+    }
+
     if (result.error) {
       const code = mapResendErrorName(result.error.name);
       console.error(
@@ -91,7 +95,10 @@ export async function sendWelcomeEmail(params: {
       return { sent: false, failureCode: code };
     }
 
-    return { sent: true };
+    console.error("[email] Resend welcome: unexpected response (no id, no error)", {
+      hasData: Boolean(result.data),
+    });
+    return { sent: false, failureCode: "unknown" };
   } catch (e) {
     console.error("[email] welcome send threw:", e);
     return { sent: false, failureCode: "unknown" };

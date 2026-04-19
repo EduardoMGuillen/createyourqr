@@ -3,15 +3,20 @@
 import type { FormEvent } from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
+import type { QrCode } from "@prisma/client";
 import { QrContentKind } from "@prisma/client";
 
+import { ContentKindPicker } from "@/components/content-kind-picker";
 import { appUrl } from "@/lib/app-url";
 import {
   downloadStyledQrPng,
   triggerDownloadDataUrl,
 } from "@/lib/qr-client-download";
+import { linkPageHtmlPage } from "@/lib/qr-content";
 import {
   DEFAULT_QR_STYLE_V1,
+  linkPagePayloadSchema,
   normalizeDestinationUrl,
   qrStyleV1Schema,
   type BarcodePayloadV1,
@@ -52,7 +57,7 @@ type CreateQrResponse = {
   error?: string;
   message?: string;
   warning?: string;
-  qr?: { styleJson?: unknown; slug?: string; contentKind?: QrContentKind };
+  qr?: QrCode;
 };
 
 function previewDataUrl(appBase: string) {
@@ -61,9 +66,11 @@ function previewDataUrl(appBase: string) {
 }
 
 export function CreateQrForm() {
+  const router = useRouter();
   const appBase = appUrl.replace(/\/$/, "");
 
   const logoInputRef = useRef<HTMLInputElement>(null);
+  const linkPageLogoInputRef = useRef<HTMLInputElement>(null);
   const [contentKind, setContentKind] = useState<QrContentKind>(QrContentKind.URL);
   const [destinationUrl, setDestinationUrl] = useState("");
   const [emailAddr, setEmailAddr] = useState("");
@@ -85,6 +92,8 @@ export function CreateQrForm() {
   const [linkPageSubtitle, setLinkPageSubtitle] = useState("");
   const [linkPageRows, setLinkPageRows] = useState(() => [newLinkRow()]);
   const [linkTheme, setLinkTheme] = useState<LinkPageThemeV1>(createDefaultLinkTheme);
+  const [linkPageLogoDataUrl, setLinkPageLogoDataUrl] = useState<string | null>(null);
+  const [linkPageLogoError, setLinkPageLogoError] = useState<string | null>(null);
   const [style, setStyle] = useState<QrStyleV1>(DEFAULT_QR_STYLE_V1);
   const [logoError, setLogoError] = useState<string | null>(null);
   const [result, setResult] = useState<CreateQrResponse | null>(null);
@@ -94,6 +103,36 @@ export function CreateQrForm() {
     if (result?.publicUrl) return result.publicUrl;
     return previewDataUrl(appBase);
   }, [result?.publicUrl, appBase]);
+
+  const linkPagePreviewSrcDoc = useMemo(() => {
+    if (contentKind !== QrContentKind.LINK_PAGE) return null;
+    const links = linkPageRows
+      .map((row) => ({
+        label: row.label.trim(),
+        url: row.url.trim() ? normalizeDestinationUrl(row.url.trim()) : "",
+      }))
+      .filter((row) => row.label.length > 0 && row.url.length > 0);
+    const linksForPreview =
+      links.length > 0 ? links : [{ label: "Your first button", url: "https://example.com" }];
+    const raw = {
+      v: 1 as const,
+      title: linkPageTitle.trim() || "Your page title",
+      ...(linkPageSubtitle.trim() ? { subtitle: linkPageSubtitle.trim() } : {}),
+      links: linksForPreview,
+      theme: { ...linkTheme },
+      ...(linkPageLogoDataUrl ? { logoDataUrl: linkPageLogoDataUrl } : {}),
+    };
+    const parsed = linkPagePayloadSchema.safeParse(raw);
+    if (!parsed.success) return null;
+    return linkPageHtmlPage(parsed.data);
+  }, [
+    contentKind,
+    linkPageRows,
+    linkPageTitle,
+    linkPageSubtitle,
+    linkTheme,
+    linkPageLogoDataUrl,
+  ]);
 
   useEffect(() => {
     if (contentKind !== QrContentKind.BARCODE) {
@@ -215,6 +254,7 @@ export function CreateQrForm() {
             ...(linkPageSubtitle.trim() ? { subtitle: linkPageSubtitle.trim() } : {}),
             links,
             theme: { ...linkTheme },
+            ...(linkPageLogoDataUrl ? { logoDataUrl: linkPageLogoDataUrl } : {}),
           },
         };
       }
@@ -282,6 +322,24 @@ export function CreateQrForm() {
       setLinkPageSubtitle("");
       setLinkPageRows([newLinkRow()]);
       setLinkTheme(createDefaultLinkTheme());
+      setLinkPageLogoDataUrl(null);
+      setLinkPageLogoError(null);
+
+      router.refresh();
+
+      if (data.qr?.id && typeof window !== "undefined") {
+        const openPreview = window.matchMedia("(max-width: 767px)").matches;
+        window.dispatchEvent(
+          new CustomEvent("cyqr:created", {
+            detail: {
+              qr: data.qr,
+              publicUrl: data.publicUrl,
+              imageDataUrl: data.imageDataUrl,
+              openPreview,
+            },
+          }),
+        );
+      }
 
       void (async () => {
         try {
@@ -328,6 +386,24 @@ export function CreateQrForm() {
     reader.readAsDataURL(file);
   }
 
+  function onLinkPageLogoFile(file: File | null) {
+    setLinkPageLogoError(null);
+    if (!file) {
+      setLinkPageLogoDataUrl(null);
+      return;
+    }
+    if (file.size > LOGO_FILE_MAX_BYTES) {
+      setLinkPageLogoError("Image must be 200KB or smaller.");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      const url = typeof reader.result === "string" ? reader.result : null;
+      setLinkPageLogoDataUrl(url);
+    };
+    reader.readAsDataURL(file);
+  }
+
   const resultStyle =
     result?.qr?.styleJson && typeof result.qr.styleJson === "object"
       ? (result.qr.styleJson as QrStyleV1)
@@ -336,7 +412,11 @@ export function CreateQrForm() {
   return (
     <section className="relative isolate rounded-lg border border-zinc-200 bg-white p-6">
       <h2 className="text-lg font-semibold text-zinc-900">Create QR or barcode</h2>
-      <p className="mt-1 text-sm text-zinc-600">
+      <p
+        className={`mt-1 text-sm text-zinc-600 ${
+          contentKind === QrContentKind.LINK_PAGE ? "mx-auto max-w-2xl text-center" : ""
+        }`}
+      >
         {contentKind === QrContentKind.BARCODE ? (
           <>
             Static barcodes encode your value directly in the image (no dynamic redirect). We still save
@@ -363,26 +443,12 @@ export function CreateQrForm() {
         {/* Controls: left on large screens */}
         <div className="relative z-10 min-w-0 lg:order-1">
           <form onSubmit={onSubmit} className="flex flex-col gap-4">
-            <div>
-              <label className="text-sm font-medium text-zinc-800" htmlFor="contentKind">
-                Content type
-              </label>
-              <select
-                id="contentKind"
-                value={contentKind}
-                onChange={(e) => setContentKind(e.target.value as QrContentKind)}
-                className="mt-1 w-full cursor-pointer rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900"
-              >
-                <option value={QrContentKind.URL}>Website (URL)</option>
-                <option value={QrContentKind.EMAIL}>Email</option>
-                <option value={QrContentKind.PHONE}>Phone</option>
-                <option value={QrContentKind.SMS}>SMS</option>
-                <option value={QrContentKind.TEXT}>Plain text</option>
-                <option value={QrContentKind.WIFI}>Wi‑Fi</option>
-                <option value={QrContentKind.LINK_PAGE}>Link page (Linktree style)</option>
-                <option value={QrContentKind.BARCODE}>Barcode (static)</option>
-              </select>
-            </div>
+            <fieldset className="min-w-0">
+              <legend className="text-sm font-medium text-zinc-800">Content type</legend>
+              <div className="mt-2">
+                <ContentKindPicker value={contentKind} onChange={setContentKind} />
+              </div>
+            </fieldset>
 
             {contentKind === QrContentKind.URL ? (
               <div>
@@ -621,7 +687,15 @@ export function CreateQrForm() {
 
             {contentKind === QrContentKind.LINK_PAGE ? (
               <div className="flex flex-col gap-4 rounded-md border border-zinc-200 bg-zinc-50/80 p-4">
-                <p className="text-xs font-medium uppercase tracking-wide text-zinc-500">Page content</p>
+                <p className="text-center text-sm leading-relaxed text-zinc-600">
+                  Visitors land on a polished link hub at your public{" "}
+                  <code className="rounded bg-white px-1 text-xs text-zinc-800">/qr/slug</code>. Add a
+                  centered logo, title, and buttons — the QR on the right still uses your module
+                  colors and optional center logo.
+                </p>
+                <p className="text-center text-xs font-semibold uppercase tracking-wide text-zinc-500">
+                  Page content
+                </p>
                 <div>
                   <label className="text-sm font-medium text-zinc-800" htmlFor="linkPageTitle">
                     Page title
@@ -650,6 +724,57 @@ export function CreateQrForm() {
                     placeholder="Short line under the title"
                     className="mt-1 w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm"
                   />
+                </div>
+                <div className="rounded-md border border-zinc-200 bg-white p-3">
+                  <p className="text-center text-xs font-semibold uppercase tracking-wide text-zinc-500">
+                    Page logo (centered)
+                  </p>
+                  <p className="mt-1 text-center text-xs text-zinc-500">
+                    Optional — appears as a round image above your title on the hosted page.
+                  </p>
+                  <div className="mt-2 flex flex-wrap items-center justify-center gap-2">
+                    <input
+                      ref={linkPageLogoInputRef}
+                      type="file"
+                      accept="image/png,image/jpeg,image/webp,image/gif"
+                      className="hidden"
+                      onChange={(e) => onLinkPageLogoFile(e.target.files?.[0] ?? null)}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => linkPageLogoInputRef.current?.click()}
+                      className="rounded-md border border-zinc-300 bg-zinc-50 px-3 py-1.5 text-xs font-medium text-zinc-800 hover:bg-zinc-100"
+                    >
+                      Upload image
+                    </button>
+                    {style.logoDataUrl ? (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setLinkPageLogoError(null);
+                          setLinkPageLogoDataUrl(style.logoDataUrl ?? null);
+                        }}
+                        className="rounded-md border border-violet-200 bg-violet-50 px-3 py-1.5 text-xs font-medium text-violet-900 hover:bg-violet-100"
+                      >
+                        Use QR module logo
+                      </button>
+                    ) : null}
+                    {linkPageLogoDataUrl ? (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setLinkPageLogoDataUrl(null);
+                          if (linkPageLogoInputRef.current) linkPageLogoInputRef.current.value = "";
+                        }}
+                        className="text-xs font-medium text-red-600 underline"
+                      >
+                        Remove page logo
+                      </button>
+                    ) : null}
+                  </div>
+                  {linkPageLogoError ? (
+                    <p className="mt-2 text-center text-xs text-red-600">{linkPageLogoError}</p>
+                  ) : null}
                 </div>
                 <div className="flex flex-col gap-2">
                   <div className="flex items-center justify-between gap-2">
@@ -970,9 +1095,34 @@ export function CreateQrForm() {
 
         {/* Live preview: right on large screens */}
         <div className="relative z-0 lg:order-2 lg:sticky lg:top-24">
-          <p className="text-center text-xs font-medium uppercase tracking-wide text-zinc-500 lg:text-left">
-            {contentKind === QrContentKind.BARCODE ? "Barcode preview" : "Live preview"}
-          </p>
+          {contentKind === QrContentKind.LINK_PAGE ? (
+            <>
+              <p className="text-center text-xs font-medium uppercase tracking-wide text-zinc-500 lg:text-left">
+                Link page preview
+              </p>
+              <div className="mt-2 overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm">
+                {linkPagePreviewSrcDoc ? (
+                  <iframe
+                    title="Link page preview"
+                    srcDoc={linkPagePreviewSrcDoc}
+                    className="h-[min(26rem,52vh)] w-full bg-white"
+                    sandbox="allow-popups allow-popups-to-escape-sandbox"
+                  />
+                ) : (
+                  <p className="p-6 text-center text-xs text-zinc-500">
+                    Add a title and at least one link to preview the hosted page.
+                  </p>
+                )}
+              </div>
+              <p className="mt-4 text-center text-xs font-medium uppercase tracking-wide text-zinc-500 lg:text-left">
+                QR module preview
+              </p>
+            </>
+          ) : (
+            <p className="text-center text-xs font-medium uppercase tracking-wide text-zinc-500 lg:text-left">
+              {contentKind === QrContentKind.BARCODE ? "Barcode preview" : "Live preview"}
+            </p>
+          )}
           <div className="mt-2">
             {contentKind === QrContentKind.BARCODE ? (
               <div className="mx-auto flex min-h-[200px] max-w-full flex-col items-center justify-center rounded-lg border border-dashed border-zinc-200 bg-zinc-50 px-3 py-4 lg:mx-0">
@@ -999,7 +1149,9 @@ export function CreateQrForm() {
           </div>
           {!result?.publicUrl && contentKind !== QrContentKind.BARCODE ? (
             <p className="mt-2 text-center text-xs text-zinc-500 lg:text-left">
-              Sample link until your QR is created; then it matches the real public URL.
+              {contentKind === QrContentKind.LINK_PAGE
+                ? "The QR encodes your public slug; the iframe shows how the link page will look."
+                : "Sample link until your QR is created; then it matches the real public URL."}
             </p>
           ) : null}
         </div>

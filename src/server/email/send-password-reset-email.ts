@@ -38,7 +38,7 @@ export async function sendPasswordResetEmail(params: {
   resetUrl: string;
   appUrl: string;
 }): Promise<PasswordResetEmailResult> {
-  const apiKey = process.env.RESEND_API_KEY;
+  const apiKey = process.env.RESEND_API_KEY?.trim();
   if (!apiKey) {
     console.warn("[email] RESEND_API_KEY is not set; cannot send password reset email.");
     return { sent: false, reason: "missing_api_key" };
@@ -46,10 +46,10 @@ export async function sendPasswordResetEmail(params: {
 
   const resend = new Resend(apiKey);
   const from =
-    process.env.RESEND_FROM ?? "CreateYourQR <onboarding@resend.dev>";
+    process.env.RESEND_FROM?.trim() ?? "CreateYourQR <onboarding@resend.dev>";
 
   try {
-    const { error } = await resend.emails.send({
+    const result = await resend.emails.send({
       from,
       to: params.to,
       subject: "Reset your CreateYourQR password",
@@ -59,12 +59,20 @@ export async function sendPasswordResetEmail(params: {
       }),
     });
 
-    if (error) {
-      console.error("[email] Resend password reset error:", error);
+    // Prefer `data.id`: Resend accepts the send with HTTP 2xx and returns `{ id }`.
+    if (result.data?.id) {
+      return { sent: true };
+    }
+
+    if (result.error) {
+      console.error("[email] Resend password reset error:", result.error);
       return { sent: false, reason: "send_failed" };
     }
 
-    return { sent: true };
+    console.error("[email] Resend password reset: unexpected response (no id, no error)", {
+      hasData: Boolean(result.data),
+    });
+    return { sent: false, reason: "send_failed" };
   } catch (e) {
     console.error("[email] password reset send failed", e);
     return { sent: false, reason: "send_failed" };

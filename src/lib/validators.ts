@@ -226,13 +226,33 @@ export const linkPageThemeSchema = z.object({
   buttonRadius: z.enum(["sm", "md", "full"]),
 });
 
-export const linkPagePayloadSchema = z.object({
-  v: z.literal(1),
-  title: z.string().trim().min(1).max(64),
-  subtitle: z.string().trim().max(200).optional(),
-  links: z.array(linkHubItemSchema).min(1).max(16),
-  theme: linkPageThemeSchema.optional(),
-});
+export const linkPagePayloadSchema = z
+  .object({
+    v: z.literal(1),
+    title: z.string().trim().min(1).max(64),
+    subtitle: z.string().trim().max(200).optional(),
+    links: z.array(linkHubItemSchema).min(1).max(16),
+    theme: linkPageThemeSchema.optional(),
+    /** Centered round image on the hosted link page (PNG/JPEG/GIF/WebP data URL). */
+    logoDataUrl: z.string().nullable().optional(),
+  })
+  .superRefine((val, ctx) => {
+    if (!val.logoDataUrl) return;
+    if (val.logoDataUrl.length > MAX_LOGO_DATA_URL_CHARS) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Page logo is too large (max ~200KB).",
+        path: ["logoDataUrl"],
+      });
+    }
+    if (!/^data:image\/(png|jpeg|jpg|gif|webp);base64,/i.test(val.logoDataUrl)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Page logo must be a PNG, JPEG, GIF, or WebP data URL.",
+        path: ["logoDataUrl"],
+      });
+    }
+  });
 
 export const wifiPayloadSchema = z
   .object({

@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { appUrl } from "@/lib/app-url";
+import { getCurrentSession } from "@/lib/auth/session";
 import { landingFaqItems } from "@/lib/landing-faq-content";
 import { buildLandingJsonLd } from "@/lib/landing-structured-data";
 
@@ -91,7 +92,6 @@ const offerings = [
     title: "Dynamic URL QR",
     tag: "Edit anytime",
     body: "Encode your public /qr/slug. Change landing pages, promos, or app store links without reprinting posters or packaging.",
-    href: "/register",
     gradient: "from-violet-500 to-purple-600",
     image: UNSPLASH.campaign,
     imageAlt: "Laptop with analytics charts representing campaign tracking",
@@ -100,7 +100,6 @@ const offerings = [
     title: "WiFi QR",
     tag: "Guest onboarding",
     body: "WPA, WEP, or open networks — one scan joins visitors to your café, office, or event WiFi with fewer support questions.",
-    href: "/register",
     gradient: "from-sky-500 to-blue-600",
     image: UNSPLASH.wifi,
     imageAlt: "Wireless router and connected workspace",
@@ -109,7 +108,6 @@ const offerings = [
     title: "Contact QRs",
     tag: "Email · Phone · SMS · Text",
     body: "Pre-filled email, E.164 phone dial, SMS body, or plain text — perfect for support lines, handouts, and NFC-adjacent flows.",
-    href: "/register",
     gradient: "from-emerald-500 to-teal-600",
     image: UNSPLASH.mobile,
     imageAlt: "Smartphones showing communication apps",
@@ -118,7 +116,6 @@ const offerings = [
     title: "Linear barcodes",
     tag: "CODE128 · EAN-13",
     body: "Retail-style barcodes for SKUs and internal logistics. Static image encodes your data directly — ideal beside QR on labels.",
-    href: "/register",
     gradient: "from-amber-500 to-orange-600",
     image: UNSPLASH.retail,
     imageAlt: "Retail shelf with product labels",
@@ -127,7 +124,6 @@ const offerings = [
     title: "Link-in-bio page",
     tag: "One scan, many actions",
     body: "Build a lightweight link hub on your slug: headline, buttons, theme colors, and rounded cards that match your brand.",
-    href: "/register",
     gradient: "from-fuchsia-500 to-pink-600",
     image: UNSPLASH.team,
     imageAlt: "Team collaborating on creative project",
@@ -136,14 +132,17 @@ const offerings = [
     title: "Styled QR modules",
     tag: "Brand-safe",
     body: "Module dots, corner caps, foreground/background colors, and optional center logos with high error correction when needed.",
-    href: "/register",
     gradient: "from-indigo-500 to-violet-600",
     image: UNSPLASH.hero,
     imageAlt: "Dashboard metrics and growth charts",
   },
 ] as const;
 
-export default function Home() {
+export default async function Home() {
+  const session = await getCurrentSession();
+  const loggedIn = Boolean(session?.user);
+  const createHref = loggedIn ? "/dashboard" : "/register";
+
   return (
     <>
       <script
@@ -179,7 +178,7 @@ export default function Home() {
               </p>
               <div className="flex flex-wrap gap-3">
                 <Link
-                  href="/register"
+                  href={createHref}
                   className="rounded-xl bg-white px-6 py-3.5 text-sm font-semibold text-violet-900 shadow-xl shadow-violet-950/30 transition hover:bg-violet-50"
                 >
                   Create your first code
@@ -285,7 +284,7 @@ export default function Home() {
                     <h3 className="text-lg font-bold text-zinc-900">{item.title}</h3>
                     <p className="mt-2 flex-1 text-sm leading-relaxed text-zinc-600">{item.body}</p>
                     <Link
-                      href={item.href}
+                      href={createHref}
                       className={`mt-4 inline-flex w-fit items-center rounded-lg bg-gradient-to-r px-3 py-2 text-xs font-semibold text-white shadow ${item.gradient}`}
                     >
                       Try in dashboard →
@@ -360,7 +359,7 @@ export default function Home() {
                 payloads.
               </p>
               <Link
-                href="/register"
+                href={createHref}
                 className="mt-6 inline-flex rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 px-5 py-3 text-sm font-semibold text-white shadow-lg"
               >
                 Create a barcode
@@ -421,10 +420,10 @@ export default function Home() {
             </p>
             <div className="relative mt-8 flex flex-wrap justify-center gap-3">
               <Link
-                href="/register"
+                href={createHref}
                 className="rounded-xl bg-white px-6 py-3 text-sm font-bold text-violet-900 shadow-lg hover:bg-violet-50"
               >
-                Create an account
+                {loggedIn ? "Open dashboard" : "Create an account"}
               </Link>
               <Link
                 href="/pricing"

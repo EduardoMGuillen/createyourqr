@@ -72,6 +72,22 @@ export async function createFreeQr(params: {
   };
 }
 
+/** Avoid counting prefetch/prerender or non-document fetches as real scans (e.g. LINK_PAGE HTML). */
+export function shouldRecordQrScan(request: Request): boolean {
+  if (request.method !== "GET") {
+    return false;
+  }
+  const purpose = request.headers.get("sec-fetch-purpose");
+  if (purpose === "prefetch" || purpose === "prerender") {
+    return false;
+  }
+  const dest = request.headers.get("sec-fetch-dest");
+  if (dest && dest !== "document") {
+    return false;
+  }
+  return true;
+}
+
 function resolveStatusByLimits(qr: {
   status: QrStatus;
   expiresAt: Date;
@@ -106,27 +122,31 @@ export async function trackScanAndResolve(slug: string, request: Request) {
     });
   }
 
-  const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim();
-  const ipHash = ip
-    ? createHash("sha256").update(`${ip}:${process.env.IP_HASH_SALT ?? "qr"}`).digest("hex")
-    : null;
+  const recordScan = shouldRecordQrScan(request);
 
-  await db.qrScan.create({
-    data: {
-      qrId: qr.id,
-      ipHash,
-      country: request.headers.get("x-vercel-ip-country"),
-      userAgent: request.headers.get("user-agent"),
-      referer: request.headers.get("referer"),
-    },
-  });
+  if (recordScan) {
+    const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim();
+    const ipHash = ip
+      ? createHash("sha256").update(`${ip}:${process.env.IP_HASH_SALT ?? "qr"}`).digest("hex")
+      : null;
 
-  await db.qrCode.update({
-    where: { id: qr.id },
-    data: {
-      scanCount: { increment: 1 },
-    },
-  });
+    await db.qrScan.create({
+      data: {
+        qrId: qr.id,
+        ipHash,
+        country: request.headers.get("x-vercel-ip-country"),
+        userAgent: request.headers.get("user-agent"),
+        referer: request.headers.get("referer"),
+      },
+    });
+
+    await db.qrCode.update({
+      where: { id: qr.id },
+      data: {
+        scanCount: { increment: 1 },
+      },
+    });
+  }
 
   const reloaded = await db.qrCode.findUniqueOrThrow({ where: { id: qr.id } });
   const recalculatedStatus = resolveStatusByLimits(reloaded);

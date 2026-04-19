@@ -25,6 +25,7 @@ export default async function PricingPage() {
           <h2 className="text-xl font-semibold">Free</h2>
           <p className="mt-2 text-3xl font-bold">$0</p>
           <ul className="mt-4 space-y-2 text-sm text-zinc-600">
+            <li>Up to 10 saved QR codes at a time</li>
             <li>Up to 50 scans per QR</li>
             <li>5-day activation window</li>
             <li>Dynamic redirect links</li>
@@ -41,6 +42,7 @@ export default async function PricingPage() {
           <h2 className="text-xl font-semibold">Pro</h2>
           <p className="mt-2 text-3xl font-bold">$15 / month</p>
           <ul className="mt-4 space-y-2 text-sm text-zinc-300">
+            <li>Unlimited saved QR codes</li>
             <li>Unlimited scans</li>
             <li>No 5-day expiration</li>
             <li>Priority support for campaigns</li>

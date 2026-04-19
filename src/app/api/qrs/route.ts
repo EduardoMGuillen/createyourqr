@@ -18,6 +18,8 @@ import { createFreeQr } from "@/server/qr-service";
 const STYLE_MIGRATION_HINT =
   "Database migration missing: run `npx prisma migrate deploy` so QrCode.styleJson exists. The QR was created without saved custom styles.";
 
+const FREE_PLAN_QR_LIMIT = 10;
+
 function createDataFromBody(data: CreateQrBody): {
   contentKind: QrContentKind;
   destinationUrl: string | null;
@@ -117,6 +119,19 @@ export async function POST(request: Request) {
   }
 
   const fields = createDataFromBody(parsed.data);
+
+  if (session.user.planCode !== PlanCode.PRO) {
+    const existingCount = await db.qrCode.count({ where: { userId: session.user.id } });
+    if (existingCount >= FREE_PLAN_QR_LIMIT) {
+      return NextResponse.json(
+        {
+          error:
+            "Free plan is limited to 10 QR codes. Delete one from your dashboard or upgrade to Pro for unlimited codes.",
+        },
+        { status: 403 },
+      );
+    }
+  }
 
   try {
     if (session.user.planCode === PlanCode.PRO) {

@@ -75,6 +75,8 @@ export type LinkPageHtmlPayload = {
     accent: string;
     buttonRadius: "sm" | "md" | "full";
   };
+  /** Validated image data URL; rendered centered above the title. */
+  logoDataUrl?: string | null;
 };
 
 function safeExternalHref(url: string): string {
@@ -112,9 +114,14 @@ export function linkPageHtmlPage(payload: LinkPageHtmlPayload): string {
     })
     .join("");
   const subBlock = safeSub
-    ? `<p style="margin:0.35rem 0 1.25rem;font-size:0.9rem;opacity:0.88;line-height:1.45">${safeSub}</p>`
+    ? `<p style="margin:0.35rem 0 1.25rem;font-size:0.9rem;opacity:0.88;line-height:1.45;text-align:center">${safeSub}</p>`
     : "";
-  return `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>${safeTitle}</title></head><body style="margin:0;font-family:system-ui,-apple-system,sans-serif;min-height:100vh;background:${pageBg};color:${pageText}"><main style="max-width:28rem;margin:0 auto;padding:1.75rem 1.25rem 2.5rem"><h1 style="margin:0;font-size:1.35rem;font-weight:700;letter-spacing:-0.02em;text-align:center;line-height:1.25">${safeTitle}</h1>${subBlock}<ul style="margin:0;padding:0;display:flex;flex-direction:column;gap:0.75rem">${linksHtml}</ul><p style="margin:2rem 0 0;text-align:center;font-size:0.75rem;opacity:0.55">CreateYourQR</p></main></body></html>`;
+  const logo = payload.logoDataUrl;
+  const logoBlock =
+    logo && /^data:image\/(png|jpeg|jpg|gif|webp);base64,/i.test(logo)
+      ? `<div style="text-align:center;margin:0 0 1rem"><img src="${logo}" alt="" width="112" height="112" style="width:7rem;height:7rem;object-fit:cover;border-radius:9999px;border:3px solid rgba(0,0,0,0.08);box-shadow:0 4px 14px rgba(0,0,0,0.08)" /></div>`
+      : "";
+  return `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>${safeTitle}</title></head><body style="margin:0;font-family:system-ui,-apple-system,sans-serif;min-height:100vh;background:${pageBg};color:${pageText}"><main style="max-width:28rem;margin:0 auto;padding:1.75rem 1.25rem 2.5rem">${logoBlock}<h1 style="margin:0;font-size:1.35rem;font-weight:700;letter-spacing:-0.02em;text-align:center;line-height:1.25">${safeTitle}</h1>${subBlock}<ul style="margin:0;padding:0;display:flex;flex-direction:column;gap:0.75rem">${linksHtml}</ul><p style="margin:2rem 0 0;text-align:center;font-size:0.75rem;opacity:0.55">CreateYourQR</p></main></body></html>`;
 }
 
 export function wifiQrHtmlPage(wifiString: string): string {

@@ -3,11 +3,10 @@ import { redirect } from "next/navigation";
 import { PlanCode } from "@prisma/client";
 
 import { CreateQrForm } from "@/components/create-qr-form";
-import { DashboardQrActions } from "@/components/dashboard-qr-actions";
+import { DashboardRecentCodes } from "@/components/dashboard-recent-codes";
 import { getCurrentSession } from "@/lib/auth/session";
 import { appUrl } from "@/lib/app-url";
 import { db } from "@/lib/db";
-import { formatQrDestinationCell } from "@/lib/qr-content";
 
 export const metadata = {
   title: "Dashboard",
@@ -48,56 +47,7 @@ export default async function DashboardPage() {
 
       <CreateQrForm />
 
-      <section className="rounded-lg border border-zinc-200 bg-white p-6">
-        <h2 className="text-lg font-semibold text-zinc-900">Recent QR codes</h2>
-        <div className="mt-4 overflow-x-auto">
-          <table className="w-full min-w-[820px] text-left text-sm">
-            <thead>
-              <tr className="border-b border-zinc-200 text-zinc-600">
-                <th className="px-2 py-2">Slug</th>
-                <th className="px-2 py-2">Type</th>
-                <th className="px-2 py-2">Status</th>
-                <th className="px-2 py-2">Scans</th>
-                <th className="px-2 py-2">Expires</th>
-                <th className="px-2 py-2">Destination / content</th>
-                <th className="px-2 py-2">Preview</th>
-              </tr>
-            </thead>
-            <tbody>
-              {qrs.map((qr) => (
-                <tr key={qr.id} className="border-b border-zinc-100">
-                  <td className="px-2 py-2 font-medium text-zinc-900">{qr.slug}</td>
-                  <td className="px-2 py-2 text-zinc-700">{qr.contentKind}</td>
-                  <td className="px-2 py-2">{qr.status}</td>
-                  <td className="px-2 py-2">
-                    {qr.scanCount} / {qr.maxScans}
-                  </td>
-                  <td className="px-2 py-2">{qr.expiresAt.toLocaleDateString()}</td>
-                  <td className="max-w-[280px] truncate px-2 py-2 text-zinc-600">
-                    {formatQrDestinationCell(qr)}
-                  </td>
-                  <td className="px-2 py-2 align-top">
-                    <DashboardQrActions
-                      slug={qr.slug}
-                      contentKind={qr.contentKind}
-                      publicUrl={`${appUrl}/qr/${qr.slug}`}
-                      styleJson={qr.styleJson}
-                      payloadJson={qr.payloadJson}
-                    />
-                  </td>
-                </tr>
-              ))}
-              {qrs.length === 0 ? (
-                <tr>
-                  <td colSpan={7} className="px-2 py-5 text-zinc-500">
-                    No QR codes yet. Create your first one above.
-                  </td>
-                </tr>
-              ) : null}
-            </tbody>
-          </table>
-        </div>
-      </section>
+      <DashboardRecentCodes initialQrs={qrs} appUrl={appUrl} />
     </main>
   );
 }

@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   description: "Terms of Service for CreateYourQR dynamic QR code platform.",
 };
 
-const LAST = "April 20, 2026";
+const LAST = "April 21, 2026";
 
 export default function TermsOfServicePage() {
   return (
@@ -123,6 +123,14 @@ export default function TermsOfServicePage() {
           Summary tables on our <Link href="/pricing" className="font-medium text-zinc-900 underline underline-offset-2">Pricing</Link> page are for convenience only; if there is any conflict between a
           marketing summary and this Agreement, <strong>this section controls</strong> for legal
           purposes unless we expressly state otherwise in writing.
+        </p>
+        <h3 className="text-base font-semibold text-zinc-900">5.2 Free plan — maximum stored codes</h3>
+        <p>
+          Unless we notify you otherwise, an account on the <strong>Free</strong> plan may hold at
+          most <strong>ten (10)</strong> QR code records (including any combination of content types
+          we support) at any one time. To create another code while at this cap, you must delete an
+          existing code from your dashboard or upgrade to <strong>Pro</strong>, which does not
+          impose this ten-code ceiling.
         </p>
       </section>
 
