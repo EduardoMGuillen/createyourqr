@@ -1,0 +1,150 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum PlanCode {
+  FREE
+  PRO
+}
+
+enum QrStatus {
+  ACTIVE
+  EXPIRED_TIME
+  EXPIRED_SCAN_LIMIT
+  DISABLED
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  CANCELED
+  SUSPENDED
+  PAST_DUE
+  INCOMPLETE
+}
+
+model User {
+  id             String               @id @default(cuid())
+  name           String?
+  email          String               @unique
+  emailVerified  DateTime?
+  image          String?
+  passwordHash   String?
+  planCode       PlanCode             @default(FREE)
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
+  accounts       Account[]
+  sessions       Session[]
+  qrs            QrCode[]
+  subscriptions  Subscription[]
+  resetTokens    PasswordResetToken[]
+}
+
+model Account {
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([provider, providerAccountId])
+}
+
+model Session {
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([sessionToken])
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@id([identifier, token])
+}
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, expiresAt])
+}
+
+model QrCode {
+  id             String    @id @default(cuid())
+  userId         String
+  slug           String    @unique
+  destinationUrl String
+  status         QrStatus  @default(ACTIVE)
+  expiresAt      DateTime
+  scanCount      Int       @default(0)
+  maxScans       Int       @default(50)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  scans          QrScan[]
+
+  @@index([userId, createdAt])
+}
+
+model QrScan {
+  id         String   @id @default(cuid())
+  qrId       String
+  scannedAt  DateTime @default(now())
+  ipHash     String?
+  country    String?
+  userAgent  String?
+  referer    String?
+  qr         QrCode   @relation(fields: [qrId], references: [id], onDelete: Cascade)
+
+  @@index([qrId, scannedAt])
+}
+
+model Subscription {
+  id                    String             @id @default(cuid())
+  userId                String
+  provider              String             @default("paypal")
+  providerSubscriptionId String?           @unique
+  status                SubscriptionStatus @default(INCOMPLETE)
+  renewalDate           DateTime?
+  createdAt             DateTime           @default(now())
+  updatedAt             DateTime           @updatedAt
+  user                  User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, status])
+}
+
+model BillingEvent {
+  id              String   @id @default(cuid())
+  provider        String
+  providerEventId String   @unique
+  type            String
+  payloadJson     Json
+  processedAt     DateTime @default(now())
+}
