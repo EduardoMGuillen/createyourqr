@@ -1,10 +1,12 @@
 import { redirect } from "next/navigation";
+import { PlanCode } from "@prisma/client";
 
 import { BillingButton } from "@/components/billing-button";
 import { CreateQrForm } from "@/components/create-qr-form";
 import { LogoutButton } from "@/components/logout-button";
 import { getCurrentSession } from "@/lib/auth/session";
 import { db } from "@/lib/db";
+import { env } from "@/lib/env";
 
 export const metadata = {
   title: "Dashboard",
@@ -32,7 +34,13 @@ export default async function DashboardPage() {
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <BillingButton />
+          {session.user.planCode !== PlanCode.PRO ? (
+            <BillingButton
+              paypalClientId={env.paypalBrowserClientId}
+              paypalPlanId={env.paypalPlanId}
+              userId={session.user.id}
+            />
+          ) : null}
           <LogoutButton />
         </div>
       </section>

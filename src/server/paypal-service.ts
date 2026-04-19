@@ -9,7 +9,7 @@ type PayPalCreateSubscriptionResponse = {
   links: Array<{ rel: string; href: string }>;
 };
 
-async function getAccessToken() {
+export async function getAccessToken() {
   const auth = Buffer.from(
     `${env.paypalClientId}:${env.paypalClientSecret}`,
   ).toString("base64");
@@ -87,6 +87,107 @@ export async function createPaypalSubscription(userId: string) {
   });
 
   return { approveUrl };
+}
+
+export type PayPalSubscriptionDetail = {
+  status?: string;
+  custom_id?: string;
+  plan_id?: string;
+};
+
+export async function fetchPayPalSubscription(
+  subscriptionId: string,
+): Promise<PayPalSubscriptionDetail> {
+  const token = await getAccessToken();
+  const response = await fetch(
+    `${env.paypalBaseUrl}/v1/billing/subscriptions/${encodeURIComponent(subscriptionId)}`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      cache: "no-store",
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error("Could not verify subscription with PayPal.");
+  }
+
+  return (await response.json()) as PayPalSubscriptionDetail;
+}
+
+/** Called after Smart Buttons `onApprove` so Pro unlocks immediately; webhooks still handle renewals. */
+export async function completeSmartButtonSubscription(params: {
+  userId: string;
+  subscriptionId: string;
+}) {
+  const existing = await db.subscription.findUnique({
+    where: { providerSubscriptionId: params.subscriptionId },
+  });
+  if (existing && existing.userId !== params.userId) {
+    const err = new Error("Subscription belongs to another account.");
+    (err as { code?: string }).code = "FORBIDDEN";
+    throw err;
+  }
+
+  const detail = await fetchPayPalSubscription(params.subscriptionId);
+
+  if (detail.custom_id) {
+    if (detail.custom_id !== params.userId) {
+      const err = new Error("Subscription does not match this account.");
+      (err as { code?: string }).code = "FORBIDDEN";
+      throw err;
+    }
+  } else if (existing && existing.userId !== params.userId) {
+    const err = new Error("Subscription belongs to another account.");
+    (err as { code?: string }).code = "FORBIDDEN";
+    throw err;
+  }
+
+  if (
+    env.paypalPlanId &&
+    detail.plan_id &&
+    detail.plan_id !== env.paypalPlanId
+  ) {
+    throw new Error("Unexpected PayPal plan.");
+  }
+
+  const status = detail.status ?? "";
+  if (status !== "ACTIVE" && status !== "APPROVED") {
+    throw new Error(`Subscription is not active yet (status: ${status}).`);
+  }
+
+  await db.subscription.upsert({
+    where: { providerSubscriptionId: params.subscriptionId },
+    create: {
+      userId: params.userId,
+      provider: "paypal",
+      providerSubscriptionId: params.subscriptionId,
+      status: SubscriptionStatus.ACTIVE,
+      renewalDate: addMonths(new Date(), 1),
+    },
+    update: {
+      userId: params.userId,
+      status: SubscriptionStatus.ACTIVE,
+      renewalDate: addMonths(new Date(), 1),
+    },
+  });
+
+  await db.$transaction([
+    db.user.update({
+      where: { id: params.userId },
+      data: { planCode: PlanCode.PRO },
+    }),
+    db.qrCode.updateMany({
+      where: { userId: params.userId },
+      data: {
+        status: QrStatus.ACTIVE,
+        maxScans: 999999999,
+        expiresAt: addMonths(new Date(), 120),
+      },
+    }),
+  ]);
 }
 
 function mapStatus(type: string): SubscriptionStatus | null {

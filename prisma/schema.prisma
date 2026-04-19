@@ -101,6 +101,7 @@ model QrCode {
   userId         String
   slug           String    @unique
   destinationUrl String
+  styleJson      Json?
   status         QrStatus  @default(ACTIVE)
   expiresAt      DateTime
   scanCount      Int       @default(0)

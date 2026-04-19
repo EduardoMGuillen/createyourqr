@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { BillingButton } from "@/components/billing-button";
 import { getCurrentSession } from "@/lib/auth/session";
+import { env } from "@/lib/env";
 
 export const metadata = {
   title: "Pricing",
@@ -46,7 +47,12 @@ export default async function PricingPage() {
           </ul>
           <div className="mt-6">
             {session?.user ? (
-              <BillingButton />
+              <BillingButton
+                paypalClientId={env.paypalBrowserClientId}
+                paypalPlanId={env.paypalPlanId}
+                userId={session.user.id}
+                variant="dark"
+              />
             ) : (
               <Link
                 href="/login"

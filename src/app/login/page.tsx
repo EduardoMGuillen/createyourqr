@@ -6,6 +6,7 @@ import { signIn } from "next-auth/react";
 
 import { AuthUrlErrorBanner } from "@/components/auth-url-error-banner";
 import { GoogleSignInButton } from "@/components/google-sign-in-button";
+import { PasswordField } from "@/components/password-field";
 
 export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
@@ -54,14 +55,21 @@ export default function LoginPage() {
           className="w-full rounded-md border border-zinc-300 px-3 py-2"
           placeholder="you@email.com"
         />
-        <input
-          name="password"
-          type="password"
-          required
-          minLength={8}
-          className="w-full rounded-md border border-zinc-300 px-3 py-2"
-          placeholder="Password"
-        />
+        <div>
+          <label htmlFor="login-password" className="text-sm font-medium text-zinc-800">
+            Password
+          </label>
+          <div className="mt-1">
+            <PasswordField
+              id="login-password"
+              required
+              minLength={8}
+              autoComplete="current-password"
+              placeholder="Password"
+              showStrength={false}
+            />
+          </div>
+        </div>
         {error ? <p className="text-sm text-red-600">{error}</p> : null}
         <button
           type="submit"

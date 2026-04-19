@@ -1,10 +1,9 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import Image from "next/image";
-import Link from "next/link";
 import { getServerSession } from "next-auth";
 
 import { Providers } from "@/components/providers";
+import { SiteHeader } from "@/components/site-header";
 import { authOptions } from "@/lib/auth/config";
 import "./globals.css";
 
@@ -38,7 +37,7 @@ export const metadata: Metadata = {
       "Dynamic QR code generator with a freemium model built for campaigns.",
     url: "/",
     siteName: "CreateYourQR",
-    images: [{ url: "/logo.png", alt: "CreateYourQR" }],
+    images: [{ url: "/logo_header.png", alt: "CreateYourQR" }],
   },
   icons: {
     icon: [{ url: "/logo500x500.png", type: "image/png", sizes: "512x512" }],
@@ -67,40 +66,7 @@ export default async function RootLayout({
     >
       <body className="min-h-full flex flex-col bg-zinc-50 text-zinc-900">
         <Providers session={session}>
-          <header className="border-b border-zinc-200 bg-white">
-            <nav className="mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-4">
-              <Link
-                href="/"
-                className="inline-flex items-center focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900 rounded-sm"
-              >
-                <span className="inline-flex origin-left scale-[1.15]">
-                  <Image
-                    src="/logo.png"
-                    alt="CreateYourQR"
-                    width={220}
-                    height={48}
-                    className="h-9 w-auto max-w-[min(220px,55vw)] object-contain object-left mix-blend-screen"
-                    priority
-                  />
-                </span>
-                <span className="sr-only">CreateYourQR</span>
-              </Link>
-              <div className="flex items-center gap-4 text-sm">
-                <Link href="/pricing" className="text-zinc-700 hover:text-zinc-900">
-                  Pricing
-                </Link>
-                <Link href="/dashboard" className="text-zinc-700 hover:text-zinc-900">
-                  Dashboard
-                </Link>
-                <Link
-                  href="/login"
-                  className="rounded-md border border-zinc-300 px-3 py-1.5 font-medium hover:bg-zinc-100"
-                >
-                  Log in
-                </Link>
-              </div>
-            </nav>
-          </header>
+          <SiteHeader session={session} />
           {children}
         </Providers>
       </body>

@@ -1,15 +1,9 @@
 import { NextResponse } from "next/server";
 import { QrStatus } from "@prisma/client";
-import { z } from "zod";
 
 import { getCurrentSession } from "@/lib/auth/session";
 import { db } from "@/lib/db";
-import { destinationUrlSchema } from "@/lib/validators";
-
-const updateSchema = z.object({
-  destinationUrl: destinationUrlSchema.optional(),
-  disabled: z.boolean().optional(),
-});
+import { patchQrBodySchema } from "@/lib/validators";
 
 export async function PATCH(
   request: Request,
@@ -22,9 +16,13 @@ export async function PATCH(
 
   const { id } = await context.params;
   const body = await request.json().catch(() => null);
-  const parsed = updateSchema.safeParse(body);
+  const parsed = patchQrBodySchema.safeParse(body);
   if (!parsed.success) {
-    return NextResponse.json({ error: "Invalid payload." }, { status: 400 });
+    const first = parsed.error.issues[0];
+    return NextResponse.json(
+      { error: first?.message ?? "Invalid payload." },
+      { status: 400 },
+    );
   }
 
   const current = await db.qrCode.findFirst({
@@ -37,8 +35,12 @@ export async function PATCH(
   const updated = await db.qrCode.update({
     where: { id },
     data: {
-      destinationUrl: parsed.data.destinationUrl ?? current.destinationUrl,
+      destinationUrl:
+        parsed.data.destinationUrl ?? current.destinationUrl,
       status: parsed.data.disabled ? QrStatus.DISABLED : current.status,
+      ...(parsed.data.styleJson !== undefined
+        ? { styleJson: parsed.data.styleJson }
+        : {}),
     },
   });
 

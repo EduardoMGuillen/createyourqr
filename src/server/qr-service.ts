@@ -4,6 +4,8 @@ import { QrStatus } from "@prisma/client";
 import { nanoid } from "nanoid";
 import QRCode from "qrcode";
 
+import type { Prisma } from "@prisma/client";
+
 import { db } from "@/lib/db";
 import { env } from "@/lib/env";
 
@@ -19,6 +21,8 @@ export async function createFreeQr(params: {
   userId: string;
   destinationUrl: string;
   maxScans?: number;
+  /** Visual-only styling; when set we skip server-side `qrcode` PNG (use client `qr-code-styling`). */
+  styleJson?: Prisma.InputJsonValue;
 }) {
   const slug = buildSlug();
   const expiresAt = addDays(new Date(), 5);
@@ -30,14 +34,21 @@ export async function createFreeQr(params: {
       destinationUrl: params.destinationUrl,
       expiresAt,
       maxScans: params.maxScans ?? 50,
+      ...(params.styleJson !== undefined
+        ? { styleJson: params.styleJson }
+        : {}),
     },
   });
 
   const publicUrl = getPublicQrUrl(slug);
-  const imageDataUrl = await QRCode.toDataURL(publicUrl, {
-    errorCorrectionLevel: "M",
-    width: 400,
-  });
+  // Custom styles are rendered on the client with `qr-code-styling` (no Node canvas pipeline here).
+  const imageDataUrl =
+    params.styleJson === undefined
+      ? await QRCode.toDataURL(publicUrl, {
+          errorCorrectionLevel: "M",
+          width: 400,
+        })
+      : undefined;
 
   return {
     qr,

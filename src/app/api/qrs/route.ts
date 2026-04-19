@@ -1,15 +1,10 @@
 import { NextResponse } from "next/server";
 import { PlanCode } from "@prisma/client";
-import { z } from "zod";
 
 import { getCurrentSession } from "@/lib/auth/session";
 import { db } from "@/lib/db";
-import { destinationUrlSchema } from "@/lib/validators";
+import { createQrBodySchema } from "@/lib/validators";
 import { createFreeQr } from "@/server/qr-service";
-
-const createQrSchema = z.object({
-  destinationUrl: destinationUrlSchema,
-});
 
 export async function GET() {
   const session = await getCurrentSession();
@@ -32,10 +27,16 @@ export async function POST(request: Request) {
   }
 
   const body = await request.json().catch(() => null);
-  const parsed = createQrSchema.safeParse(body);
+  const parsed = createQrBodySchema.safeParse(body);
   if (!parsed.success) {
-    return NextResponse.json({ error: "Invalid payload." }, { status: 400 });
+    const first = parsed.error.issues[0];
+    return NextResponse.json(
+      { error: first?.message ?? "Invalid payload." },
+      { status: 400 },
+    );
   }
+
+  const styleJson = parsed.data.styleJson;
 
   if (session.user.planCode === PlanCode.PRO) {
     const slug = crypto.randomUUID().slice(0, 10);
@@ -47,6 +48,7 @@ export async function POST(request: Request) {
         destinationUrl: parsed.data.destinationUrl,
         maxScans: 999999999,
         expiresAt,
+        ...(styleJson !== undefined ? { styleJson } : {}),
       },
     });
 
@@ -59,6 +61,7 @@ export async function POST(request: Request) {
   const created = await createFreeQr({
     userId: session.user.id,
     destinationUrl: parsed.data.destinationUrl,
+    styleJson,
   });
 
   return NextResponse.json(created, { status: 201 });
