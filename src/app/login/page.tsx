@@ -1,12 +1,13 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { Suspense, FormEvent, useState } from "react";
 import Link from "next/link";
 import { signIn } from "next-auth/react";
-import { useRouter } from "next/navigation";
+
+import { AuthUrlErrorBanner } from "@/components/auth-url-error-banner";
+import { GoogleSignInButton } from "@/components/google-sign-in-button";
 
 export default function LoginPage() {
-  const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -31,7 +32,9 @@ export default function LoginPage() {
       setError("Invalid email or password.");
       return;
     }
-    router.push("/dashboard");
+    if (response?.ok) {
+      window.location.assign("/dashboard");
+    }
   }
 
   return (
@@ -40,6 +43,9 @@ export default function LoginPage() {
       <p className="mt-2 text-sm text-zinc-600">
         Access your QR dashboard and manage active campaigns.
       </p>
+      <Suspense fallback={null}>
+        <AuthUrlErrorBanner />
+      </Suspense>
       <form onSubmit={onSubmit} className="mt-8 space-y-4">
         <input
           name="email"
@@ -65,13 +71,9 @@ export default function LoginPage() {
           {loading ? "Logging in..." : "Log in"}
         </button>
       </form>
-      <button
-        type="button"
-        onClick={() => signIn("google", { callbackUrl: "/dashboard" })}
-        className="mt-3 w-full rounded-md border border-zinc-300 px-4 py-2.5 text-sm font-medium"
-      >
-        Continue with Google
-      </button>
+      <div className="mt-3">
+        <GoogleSignInButton callbackUrl="/dashboard" />
+      </div>
       <div className="mt-6 flex justify-between text-sm">
         <Link className="text-zinc-700 underline" href="/forgot-password">
           Forgot password?

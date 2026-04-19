@@ -15,16 +15,19 @@ const credentialsSchema = z.object({
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(db),
+  secret: process.env.NEXTAUTH_SECRET,
   session: {
     strategy: "database",
   },
   pages: {
     signIn: "/login",
+    error: "/login",
   },
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID ?? "",
       clientSecret: process.env.GOOGLE_CLIENT_SECRET ?? "",
+      allowDangerousEmailAccountLinking: true,
     }),
     CredentialsProvider({
       name: "Email and password",

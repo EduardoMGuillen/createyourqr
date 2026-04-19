@@ -1,12 +1,13 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { Suspense, FormEvent, useState } from "react";
 import Link from "next/link";
 import { signIn } from "next-auth/react";
-import { useRouter } from "next/navigation";
+
+import { AuthUrlErrorBanner } from "@/components/auth-url-error-banner";
+import { GoogleSignInButton } from "@/components/google-sign-in-button";
 
 export default function RegisterPage() {
-  const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -35,12 +36,21 @@ export default function RegisterPage() {
       return;
     }
 
-    await signIn("credentials", {
+    const signInResult = await signIn("credentials", {
       email: payload.email,
       password: payload.password,
+      redirect: false,
       callbackUrl: "/dashboard",
     });
-    router.push("/dashboard");
+
+    setLoading(false);
+    if (signInResult?.error) {
+      setError("Account created but sign-in failed. Try logging in.");
+      return;
+    }
+    if (signInResult?.ok) {
+      window.location.assign("/dashboard");
+    }
   }
 
   return (
@@ -49,6 +59,9 @@ export default function RegisterPage() {
       <p className="mt-2 text-sm text-zinc-600">
         Start free with 5 days and 50 scans per QR.
       </p>
+      <Suspense fallback={null}>
+        <AuthUrlErrorBanner />
+      </Suspense>
       <form onSubmit={onSubmit} className="mt-8 space-y-4">
         <input
           name="name"
@@ -80,13 +93,9 @@ export default function RegisterPage() {
           {loading ? "Creating..." : "Create account"}
         </button>
       </form>
-      <button
-        type="button"
-        onClick={() => signIn("google", { callbackUrl: "/dashboard" })}
-        className="mt-3 w-full rounded-md border border-zinc-300 px-4 py-2.5 text-sm font-medium"
-      >
-        Continue with Google
-      </button>
+      <div className="mt-3">
+        <GoogleSignInButton callbackUrl="/dashboard" />
+      </div>
       <Link href="/login" className="mt-6 text-sm text-zinc-700 underline">
         Already have an account? Log in
       </Link>
