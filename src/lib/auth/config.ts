@@ -16,8 +16,11 @@ const credentialsSchema = z.object({
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(db),
   secret: process.env.NEXTAUTH_SECRET,
+  // JWT is required when using Credentials: database sessions only persist for OAuth,
+  // so email/password login would set a cookie that getServerSession never resolves.
   session: {
-    strategy: "database",
+    strategy: "jwt",
+    maxAge: 30 * 24 * 60 * 60,
   },
   pages: {
     signIn: "/login",
@@ -63,16 +66,21 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
-    async session({ session, user }) {
-      if (session.user) {
+    async jwt({ token, user }) {
+      if (user?.id) {
+        token.sub = user.id;
+      }
+      return token;
+    },
+    async session({ session, token }) {
+      if (session.user && token.sub) {
+        session.user.id = token.sub;
         const fullUser = await db.user.findUnique({
-          where: { id: user.id },
+          where: { id: token.sub },
           select: { planCode: true },
         });
-        session.user.id = user.id;
         session.user.planCode = fullUser?.planCode ?? PlanCode.FREE;
       }
-
       return session;
     },
   },

@@ -4,7 +4,8 @@ const messages: Record<string, string> = {
   AccessDenied: "You do not have permission to sign in.",
   Verification: "The sign-in link is no longer valid. Request a new one.",
   OAuthSignin: "Could not start Google sign-in. Try again.",
-  OAuthCallback: "Google sign-in failed after redirect. Check redirect URIs in Google Cloud Console.",
+  OAuthCallback:
+    "Google sign-in failed after redirect. In Google Cloud Console add this exact URI under Authorized redirect URIs: YOUR_SITE_URL/api/auth/callback/google (same host as NEXTAUTH_URL on Vercel).",
   OAuthCreateAccount: "Could not create your account with Google.",
   EmailCreateAccount: "Could not create your account with email.",
   Callback: "Something went wrong during sign-in.",

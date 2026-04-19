@@ -33,7 +33,7 @@ export default function LoginPage() {
       return;
     }
     if (response?.ok) {
-      window.location.assign("/dashboard");
+      window.location.assign(response.url ?? "/dashboard");
     }
   }
 

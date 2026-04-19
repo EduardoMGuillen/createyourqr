@@ -49,7 +49,7 @@ export default function RegisterPage() {
       return;
     }
     if (signInResult?.ok) {
-      window.location.assign("/dashboard");
+      window.location.assign(signInResult.url ?? "/dashboard");
     }
   }
 
