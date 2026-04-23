@@ -66,6 +66,7 @@ export function buildLandingJsonLd(origin: string) {
           "Dynamic QR codes with editable destination URL",
           "Trackable QR code analytics and scan visibility",
           "Post-generation account activation prompts",
+          "Link-in-bio page builder (Linktree-style)",
           "Custom QR styling: colors, dot shapes, corner styles, optional logo",
           "Hosted slugs for long-term printed QR usability",
           "Reliable status handling for active campaign codes",

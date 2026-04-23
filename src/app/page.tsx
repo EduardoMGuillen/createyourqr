@@ -26,6 +26,8 @@ export const metadata: Metadata = {
     "dynamic QR code generator",
     "trackable QR code",
     "editable QR code",
+    "linktree alternative",
+    "free link in bio",
     "qr code analytics",
     "qr code free trial",
   ],
@@ -151,6 +153,32 @@ export default function Home() {
                   <p className="mt-1 text-sm leading-relaxed text-zinc-600">{feature.body}</p>
                 </article>
               ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="mx-auto w-full max-w-6xl px-6 py-12">
+          <div className="rounded-3xl border border-fuchsia-200 bg-gradient-to-r from-fuchsia-50 to-violet-50 p-6 md:p-8">
+            <h2 className="text-2xl font-bold tracking-tight text-zinc-900 md:text-3xl">
+              Need a free Linktree alternative?
+            </h2>
+            <p className="mt-3 max-w-3xl text-sm text-zinc-700 md:text-base">
+              Create a link in bio page with multiple buttons, custom colors, and one URL you can share
+              everywhere.
+            </p>
+            <div className="mt-5 flex flex-wrap gap-3">
+              <Link
+                href="/link-in-bio"
+                className="rounded-xl bg-zinc-900 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-zinc-800"
+              >
+                Create link in bio free
+              </Link>
+              <Link
+                href="/register"
+                className="rounded-xl border border-zinc-300 bg-white px-5 py-2.5 text-sm font-semibold text-zinc-800 transition hover:bg-zinc-100"
+              >
+                Start with account
+              </Link>
             </div>
           </div>
         </section>

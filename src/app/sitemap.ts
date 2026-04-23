@@ -5,6 +5,7 @@ import { appUrl } from "@/lib/app-url";
 export default function sitemap(): MetadataRoute.Sitemap {
   const staticPages = [
     "",
+    "/link-in-bio",
     "/pricing",
     "/login",
     "/register",
