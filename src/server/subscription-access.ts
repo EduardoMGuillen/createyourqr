@@ -93,7 +93,7 @@ export async function syncUserPlanBySubscriptionWindow(userId: string) {
     return;
   }
 
-  if (user.planCode !== PlanCode.FREE) {
-    await removeProAccessIfNoActiveSubscriptions(userId);
-  }
+  // Always enforce FREE limits when no paid window exists.
+  // This also fixes cases where user.planCode is already FREE but old QRs still have "Never" expiry.
+  await removeProAccessIfNoActiveSubscriptions(userId);
 }
