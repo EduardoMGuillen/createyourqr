@@ -4,14 +4,10 @@ import {
   mapResendErrorName,
   type ResendEmailFailureCode,
 } from "@/server/email/resend-failure-codes";
-
-function escapeHtml(text: string) {
-  return text
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;");
-}
+import {
+  buildBrandedEmailLayout,
+  escapeHtml,
+} from "@/server/email/email-template";
 
 function buildWelcomeHtml(params: {
   name?: string | null;
@@ -22,26 +18,25 @@ function buildWelcomeHtml(params: {
     ? `Hi ${escapeHtml(params.name)},`
     : "Hi there,";
 
-  return `
-<!DOCTYPE html>
-<html>
-  <body style="font-family: system-ui, sans-serif; line-height: 1.5; color: #18181b;">
-    <p>${greeting}</p>
-    <p><strong>Your CreateYourQR account was successfully created.</strong></p>
-    <p>You can sign in with:</p>
-    <ul>
+  const bodyHtml = `
+    <p style="margin:0 0 12px;line-height:1.6;">${greeting}</p>
+    <p style="margin:0 0 12px;line-height:1.6;"><strong>Your CreateYourQR account is ready.</strong></p>
+    <p style="margin:0 0 8px;line-height:1.6;">You can sign in with:</p>
+    <ul style="margin:0 0 14px 18px;padding:0;line-height:1.6;">
       <li><strong>Email:</strong> ${escapeHtml(params.email)}</li>
-      <li><strong>Password:</strong> the one you chose on the registration form (we never store it in plain text and do not send it by email for security).</li>
+      <li><strong>Password:</strong> the one you chose during registration (never sent in plain text).</li>
     </ul>
-    <p>
-      <a href="${escapeHtml(params.appUrl)}/login" style="color: #18181b;">Go to login</a>
-      &nbsp;·&nbsp;
-      <a href="${escapeHtml(params.appUrl)}/dashboard" style="color: #18181b;">Open dashboard</a>
+    <p style="margin:0 0 16px;">
+      <a href="${escapeHtml(params.appUrl)}/dashboard" style="display:inline-block;background:#18181b;color:#fafafa;text-decoration:none;padding:10px 14px;border-radius:8px;font-weight:600;">Open dashboard</a>
     </p>
-    <p style="font-size: 12px; color: #71717a;">CreateYourQR — dynamic QR codes with a simple free tier.</p>
-  </body>
-</html>
-`.trim();
+    <p style="margin:0;color:#52525b;font-size:13px;line-height:1.6;">Need help? Reply to this email and our team will assist you.</p>
+  `;
+  return buildBrandedEmailLayout({
+    title: "Welcome to CreateYourQR",
+    preheader: "Your account was created successfully.",
+    appUrl: params.appUrl,
+    bodyHtml,
+  });
 }
 
 export type WelcomeEmailResult =

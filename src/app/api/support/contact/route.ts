@@ -4,10 +4,10 @@ import { z } from "zod";
 import { sendSupportEmails } from "@/server/email/send-support-email";
 
 const bodySchema = z.object({
-  name: z.string().trim().min(2).max(80),
+  name: z.string().trim().min(1).max(80),
   email: z.email(),
-  subject: z.string().trim().min(3).max(120),
-  message: z.string().trim().min(10).max(4000),
+  subject: z.string().trim().min(2).max(120),
+  message: z.string().trim().min(5).max(4000),
   source: z.string().trim().min(1).max(80),
 });
 
@@ -15,7 +15,11 @@ export async function POST(request: Request) {
   const body = await request.json().catch(() => null);
   const parsed = bodySchema.safeParse(body);
   if (!parsed.success) {
-    return NextResponse.json({ error: "Invalid payload." }, { status: 400 });
+    const first = parsed.error.issues[0];
+    return NextResponse.json(
+      { error: first?.message ?? "Invalid payload." },
+      { status: 400 },
+    );
   }
 
   try {

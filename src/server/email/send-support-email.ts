@@ -1,12 +1,9 @@
 import { Resend } from "resend";
-
-function escapeHtml(text: string) {
-  return text
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;");
-}
+import { appUrl } from "@/lib/app-url";
+import {
+  buildBrandedEmailLayout,
+  escapeHtml,
+} from "@/server/email/email-template";
 
 function supportInboxEmail() {
   return process.env.SUPPORT_INBOX_EMAIL?.trim() || "eduardoguillendev@proton.me";
@@ -23,37 +20,38 @@ function buildInboxHtml(params: {
   message: string;
   source: string;
 }) {
-  return `
-<!DOCTYPE html>
-<html>
-  <body style="font-family: system-ui, sans-serif; line-height: 1.5; color: #18181b;">
-    <p><strong>New support request from CreateYourQR</strong></p>
-    <ul>
+  const bodyHtml = `
+    <p style="margin:0 0 12px;line-height:1.6;"><strong>New support request received.</strong></p>
+    <ul style="margin:0 0 14px 18px;padding:0;line-height:1.6;">
       <li><strong>Name:</strong> ${escapeHtml(params.name)}</li>
       <li><strong>Email:</strong> ${escapeHtml(params.email)}</li>
       <li><strong>Source:</strong> ${escapeHtml(params.source)}</li>
       <li><strong>Subject:</strong> ${escapeHtml(params.subject)}</li>
     </ul>
-    <p><strong>Message</strong></p>
-    <pre style="white-space: pre-wrap; background: #f4f4f5; padding: 12px; border-radius: 8px;">${escapeHtml(params.message)}</pre>
-  </body>
-</html>
-`.trim();
+    <p style="margin:0 0 8px;line-height:1.6;"><strong>Message</strong></p>
+    <pre style="white-space:pre-wrap;background:#f4f4f5;padding:12px;border-radius:8px;border:1px solid #e4e4e7;">${escapeHtml(params.message)}</pre>
+  `;
+  return buildBrandedEmailLayout({
+    title: "New support request",
+    preheader: "CreateYourQR support inbox notification.",
+    appUrl,
+    bodyHtml,
+  });
 }
 
 function buildAutoReplyHtml(params: { name: string; subject: string }) {
-  return `
-<!DOCTYPE html>
-<html>
-  <body style="font-family: system-ui, sans-serif; line-height: 1.5; color: #18181b;">
-    <p>Hi ${escapeHtml(params.name)},</p>
-    <p>Thanks for contacting CreateYourQR support.</p>
-    <p>We received your request about: <strong>${escapeHtml(params.subject)}</strong>.</p>
-    <p>Our team will get back to you as soon as possible.</p>
-    <p style="margin-top: 24px;">— CreateYourQR Team</p>
-  </body>
-</html>
-`.trim();
+  const bodyHtml = `
+    <p style="margin:0 0 12px;line-height:1.6;">Hi ${escapeHtml(params.name)},</p>
+    <p style="margin:0 0 12px;line-height:1.6;">Thanks for contacting CreateYourQR support.</p>
+    <p style="margin:0 0 12px;line-height:1.6;">We received your request about: <strong>${escapeHtml(params.subject)}</strong>.</p>
+    <p style="margin:0;line-height:1.6;">Our team will get back to you as soon as possible.</p>
+  `;
+  return buildBrandedEmailLayout({
+    title: "Support request received",
+    preheader: "Your support request is in our queue.",
+    appUrl,
+    bodyHtml,
+  });
 }
 
 export async function sendSupportEmails(params: {
