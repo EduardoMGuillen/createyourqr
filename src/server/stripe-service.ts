@@ -125,6 +125,37 @@ export async function completeStripeCheckoutForUser(params: {
   }
 }
 
+export async function completeStripeSubscriptionForUser(params: {
+  userId: string;
+  stripeSubscriptionId: string;
+}) {
+  const stripe = getStripeClient();
+  const subscription = await stripe.subscriptions.retrieve(params.stripeSubscriptionId, {
+    expand: ["customer"],
+  });
+
+  const metadataUserId = subscription.metadata?.userId;
+  if (metadataUserId && metadataUserId !== params.userId) {
+    const err = new Error("Stripe subscription belongs to another account.");
+    (err as { code?: string }).code = "FORBIDDEN";
+    throw err;
+  }
+
+  const mappedStatus = mapStripeStatus(subscription.status);
+  const periodEndUnix = subscriptionPeriodEndUnix(subscription);
+
+  await upsertStripeSubscription({
+    userId: params.userId,
+    subscriptionId: subscription.id,
+    status: mappedStatus,
+    currentPeriodEndUnix: periodEndUnix,
+  });
+
+  if (mappedStatus === SubscriptionStatus.ACTIVE) {
+    await grantProAccess(params.userId);
+  }
+}
+
 export async function cancelStripeSubscription(userId: string) {
   const row = await db.subscription.findFirst({
     where: {

@@ -2,11 +2,19 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { getCurrentSession } from "@/lib/auth/session";
-import { completeStripeCheckoutForUser } from "@/server/stripe-service";
+import {
+  completeStripeCheckoutForUser,
+  completeStripeSubscriptionForUser,
+} from "@/server/stripe-service";
 
-const bodySchema = z.object({
-  checkoutSessionId: z.string().min(1),
-});
+const bodySchema = z.union([
+  z.object({
+    checkoutSessionId: z.string().min(1),
+  }),
+  z.object({
+    stripeSubscriptionId: z.string().min(1),
+  }),
+]);
 
 export async function POST(request: Request) {
   const session = await getCurrentSession();
@@ -21,10 +29,17 @@ export async function POST(request: Request) {
   }
 
   try {
-    await completeStripeCheckoutForUser({
-      userId: session.user.id,
-      checkoutSessionId: parsed.data.checkoutSessionId,
-    });
+    if ("checkoutSessionId" in parsed.data) {
+      await completeStripeCheckoutForUser({
+        userId: session.user.id,
+        checkoutSessionId: parsed.data.checkoutSessionId,
+      });
+    } else {
+      await completeStripeSubscriptionForUser({
+        userId: session.user.id,
+        stripeSubscriptionId: parsed.data.stripeSubscriptionId,
+      });
+    }
     return NextResponse.json({ ok: true });
   } catch (error) {
     const code = (error as { code?: string }).code;

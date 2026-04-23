@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { PlanCode, SubscriptionStatus } from "@prisma/client";
 
 import { DashboardBillingActions } from "@/components/dashboard-billing-actions";
+import { DashboardBillingResync } from "@/components/dashboard-billing-resync";
 import { DashboardBillingSync } from "@/components/dashboard-billing-sync";
 import { CreateQrForm } from "@/components/create-qr-form";
 import { DashboardRecentCodes } from "@/components/dashboard-recent-codes";
@@ -51,6 +52,7 @@ export default async function DashboardPage() {
           </p>
         </div>
         <div className="flex items-center gap-3">
+          <DashboardBillingResync />
           <DashboardBillingActions activeProvider={activeProvider} />
           {session.user.planCode !== PlanCode.PRO ? (
             <Link

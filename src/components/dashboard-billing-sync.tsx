@@ -22,14 +22,19 @@ export function DashboardBillingSync() {
       try {
         if (provider === "stripe") {
           const checkoutSessionId = searchParams.get("session_id");
-          if (!checkoutSessionId) {
-            setError("Stripe payment completed but missing session id. Contact support.");
+          const stripeSubscriptionId = searchParams.get("subscription_id");
+          if (!checkoutSessionId && !stripeSubscriptionId) {
+            setError("Stripe payment completed but missing session/subscription id. Contact support.");
             return;
           }
           const response = await fetch("/api/billing/stripe/complete-checkout", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ checkoutSessionId }),
+            body: JSON.stringify(
+              checkoutSessionId
+                ? { checkoutSessionId }
+                : { stripeSubscriptionId },
+            ),
           });
           const body = (await response.json().catch(() => null)) as { error?: string } | null;
           if (!response.ok) {
