@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { LinkInBioLiveDemo } from "@/components/landing/link-in-bio-live-demo";
+
 export const metadata: Metadata = {
   title: "Free Link in Bio Builder | CreateYourQR",
   description:
@@ -65,6 +67,8 @@ export default function LinkInBioPage() {
           </article>
         ))}
       </section>
+
+      <LinkInBioLiveDemo />
     </main>
   );
 }
