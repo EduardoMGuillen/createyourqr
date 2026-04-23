@@ -108,7 +108,7 @@ export function BillingButton({
               return;
             }
             router.refresh();
-            router.push("/dashboard?billing=success");
+            router.push("/dashboard?billing=success&provider=paypal");
           }}
           onError={(err) => {
             console.error(err);

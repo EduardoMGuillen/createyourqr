@@ -186,6 +186,75 @@ export async function completeSmartButtonSubscription(params: {
   await grantProAccess(params.userId);
 }
 
+export async function refreshLatestPayPalSubscriptionForUser(userId: string) {
+  const latest = await db.subscription.findFirst({
+    where: {
+      userId,
+      provider: "paypal",
+      status: { in: [SubscriptionStatus.INCOMPLETE, SubscriptionStatus.ACTIVE, SubscriptionStatus.PAST_DUE] },
+    },
+    orderBy: { updatedAt: "desc" },
+  });
+  if (!latest?.providerSubscriptionId) {
+    throw new Error("No PayPal subscription found to refresh.");
+  }
+
+  const detail = await fetchPayPalSubscription(latest.providerSubscriptionId);
+  const status = detail.status ?? "";
+  const isActive = status === "ACTIVE" || status === "APPROVED";
+
+  await db.subscription.update({
+    where: { id: latest.id },
+    data: {
+      status: isActive ? SubscriptionStatus.ACTIVE : SubscriptionStatus.PAST_DUE,
+      renewalDate: isActive ? addMonths(new Date(), 1) : null,
+    },
+  });
+
+  if (isActive) {
+    await grantProAccess(userId);
+  }
+}
+
+export async function cancelPayPalSubscription(userId: string) {
+  const latest = await db.subscription.findFirst({
+    where: {
+      userId,
+      provider: "paypal",
+      status: { in: [SubscriptionStatus.ACTIVE, SubscriptionStatus.PAST_DUE, SubscriptionStatus.INCOMPLETE] },
+    },
+    orderBy: { updatedAt: "desc" },
+  });
+  if (!latest?.providerSubscriptionId) {
+    throw new Error("No active PayPal subscription found.");
+  }
+
+  const token = await getAccessToken();
+  const response = await fetch(
+    `${env.paypalBaseUrl}/v1/billing/subscriptions/${encodeURIComponent(latest.providerSubscriptionId)}/cancel`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ reason: "Canceled by customer from dashboard." }),
+      cache: "no-store",
+    },
+  );
+
+  if (!response.ok && response.status !== 204) {
+    throw new Error("Could not cancel PayPal subscription.");
+  }
+
+  await db.subscription.update({
+    where: { id: latest.id },
+    data: { status: SubscriptionStatus.CANCELED, renewalDate: null },
+  });
+
+  await removeProAccessIfNoActiveSubscriptions(userId);
+}
+
 function mapStatus(type: string): SubscriptionStatus | null {
   if (type === "BILLING.SUBSCRIPTION.ACTIVATED") return SubscriptionStatus.ACTIVE;
   if (type === "BILLING.SUBSCRIPTION.CANCELLED") return SubscriptionStatus.CANCELED;

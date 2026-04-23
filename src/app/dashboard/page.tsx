@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { PlanCode } from "@prisma/client";
+import { PlanCode, SubscriptionStatus } from "@prisma/client";
 
+import { DashboardBillingActions } from "@/components/dashboard-billing-actions";
+import { DashboardBillingSync } from "@/components/dashboard-billing-sync";
 import { CreateQrForm } from "@/components/create-qr-form";
 import { DashboardRecentCodes } from "@/components/dashboard-recent-codes";
 import { getCurrentSession } from "@/lib/auth/session";
@@ -23,9 +25,24 @@ export default async function DashboardPage() {
     orderBy: { createdAt: "desc" },
     take: 20,
   });
+  const activeSubscription = await db.subscription.findFirst({
+    where: {
+      userId: session.user.id,
+      status: {
+        in: [SubscriptionStatus.ACTIVE, SubscriptionStatus.PAST_DUE, SubscriptionStatus.INCOMPLETE],
+      },
+    },
+    orderBy: { updatedAt: "desc" },
+    select: { provider: true },
+  });
+  const activeProvider =
+    activeSubscription?.provider === "stripe" || activeSubscription?.provider === "paypal"
+      ? activeSubscription.provider
+      : null;
 
   return (
     <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 px-6 py-10">
+      <DashboardBillingSync />
       <section className="flex flex-wrap items-center justify-between gap-4 rounded-lg border border-zinc-200 bg-white p-6">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Your dashboard</h1>
@@ -34,6 +51,7 @@ export default async function DashboardPage() {
           </p>
         </div>
         <div className="flex items-center gap-3">
+          <DashboardBillingActions activeProvider={activeProvider} />
           {session.user.planCode !== PlanCode.PRO ? (
             <Link
               href="/pricing"

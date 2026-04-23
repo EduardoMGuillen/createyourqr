@@ -69,7 +69,7 @@ export async function createStripeCheckoutSession(userId: string) {
   const session = await stripe.checkout.sessions.create({
     mode: "subscription",
     line_items: [{ price: priceId, quantity: 1 }],
-    success_url: `${env.appUrl}/dashboard?billing=success&provider=stripe`,
+    success_url: `${env.appUrl}/dashboard?billing=success&provider=stripe&session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${env.appUrl}/pricing?billing=cancel&provider=stripe`,
     metadata: { userId },
     subscription_data: {
@@ -81,6 +81,72 @@ export async function createStripeCheckoutSession(userId: string) {
     throw new Error("Stripe did not return a checkout URL.");
   }
   return { checkoutUrl: session.url };
+}
+
+export async function completeStripeCheckoutForUser(params: {
+  userId: string;
+  checkoutSessionId: string;
+}) {
+  const stripe = getStripeClient();
+  const checkoutSession = await stripe.checkout.sessions.retrieve(params.checkoutSessionId, {
+    expand: ["subscription"],
+  });
+
+  const sessionUserId = checkoutSession.metadata?.userId;
+  if (sessionUserId && sessionUserId !== params.userId) {
+    const err = new Error("Checkout session belongs to another account.");
+    (err as { code?: string }).code = "FORBIDDEN";
+    throw err;
+  }
+
+  const subscriptionId =
+    typeof checkoutSession.subscription === "string"
+      ? checkoutSession.subscription
+      : checkoutSession.subscription?.id;
+
+  if (!subscriptionId) {
+    throw new Error("Checkout session does not include a subscription.");
+  }
+
+  const subObject =
+    typeof checkoutSession.subscription === "string" ? null : checkoutSession.subscription;
+  const mappedStatus = subObject ? mapStripeStatus(subObject.status) : SubscriptionStatus.ACTIVE;
+  const periodEndUnix = subObject ? subscriptionPeriodEndUnix(subObject) : undefined;
+
+  await upsertStripeSubscription({
+    userId: params.userId,
+    subscriptionId,
+    status: mappedStatus,
+    currentPeriodEndUnix: periodEndUnix,
+  });
+
+  if (mappedStatus === SubscriptionStatus.ACTIVE) {
+    await grantProAccess(params.userId);
+  }
+}
+
+export async function cancelStripeSubscription(userId: string) {
+  const row = await db.subscription.findFirst({
+    where: {
+      userId,
+      provider: "stripe",
+      status: { in: [SubscriptionStatus.ACTIVE, SubscriptionStatus.PAST_DUE, SubscriptionStatus.INCOMPLETE] },
+    },
+    orderBy: { updatedAt: "desc" },
+  });
+  if (!row?.providerSubscriptionId) {
+    throw new Error("No active Stripe subscription found.");
+  }
+
+  const stripe = getStripeClient();
+  await stripe.subscriptions.cancel(row.providerSubscriptionId);
+
+  await db.subscription.update({
+    where: { id: row.id },
+    data: { status: SubscriptionStatus.CANCELED, renewalDate: null },
+  });
+
+  await removeProAccessIfNoActiveSubscriptions(userId);
 }
 
 function mapStripeStatus(status: Stripe.Subscription.Status): SubscriptionStatus {
