@@ -1,7 +1,9 @@
-import { addMonths } from "date-fns";
 import { PlanCode, QrStatus, SubscriptionStatus } from "@prisma/client";
 
 import { db } from "@/lib/db";
+
+const PRO_MAX_SCANS = 999999999;
+const PRO_NEVER_EXPIRES_AT = new Date("2099-12-31T00:00:00.000Z");
 
 export async function grantProAccess(userId: string) {
   await db.$transaction([
@@ -13,19 +15,16 @@ export async function grantProAccess(userId: string) {
       where: { userId },
       data: {
         status: QrStatus.ACTIVE,
-        maxScans: 999999999,
-        expiresAt: addMonths(new Date(), 120),
+        maxScans: PRO_MAX_SCANS,
+        expiresAt: PRO_NEVER_EXPIRES_AT,
       },
     }),
   ]);
 }
 
 export async function removeProAccessIfNoActiveSubscriptions(userId: string) {
-  const activeSubscriptions = await db.subscription.count({
-    where: { userId, status: SubscriptionStatus.ACTIVE },
-  });
-  if (activeSubscriptions > 0) return;
-
+  const hasProWindow = await hasProAccessWindow(userId);
+  if (hasProWindow) return;
   await db.$transaction([
     db.user.update({
       where: { id: userId },
@@ -33,7 +32,11 @@ export async function removeProAccessIfNoActiveSubscriptions(userId: string) {
     }),
     db.qrCode.updateMany({
       where: { userId },
-      data: { maxScans: 50 },
+      data: {
+        status: QrStatus.EXPIRED_TIME,
+        maxScans: 50,
+        expiresAt: new Date(),
+      },
     }),
   ]);
 }
@@ -51,5 +54,46 @@ export async function assertNoOtherActiveProvider(
   });
   if (active) {
     throw new Error(`You already have an active ${active.provider} subscription.`);
+  }
+}
+
+async function hasProAccessWindow(userId: string) {
+  const now = new Date();
+  const sub = await db.subscription.findFirst({
+    where: {
+      userId,
+      OR: [
+        { status: SubscriptionStatus.ACTIVE },
+        { status: SubscriptionStatus.CANCELED, renewalDate: { gt: now } },
+      ],
+    },
+    select: { id: true },
+  });
+  return Boolean(sub);
+}
+
+/**
+ * Enforce plan lifecycle from subscription windows:
+ * - Active subscriptions => PRO (all QRs set to never-expire semantics)
+ * - Canceled with future renewalDate => keep PRO until period end
+ * - No valid window => FREE + expire all QRs immediately
+ */
+export async function syncUserPlanBySubscriptionWindow(userId: string) {
+  const hasProWindow = await hasProAccessWindow(userId);
+  const user = await db.user.findUnique({
+    where: { id: userId },
+    select: { planCode: true },
+  });
+  if (!user) return;
+
+  if (hasProWindow) {
+    if (user.planCode !== PlanCode.PRO) {
+      await grantProAccess(userId);
+    }
+    return;
+  }
+
+  if (user.planCode !== PlanCode.FREE) {
+    await removeProAccessIfNoActiveSubscriptions(userId);
   }
 }

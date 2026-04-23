@@ -19,6 +19,14 @@ type DashboardRecentCodesProps = {
   appUrl: string;
 };
 
+function formatQrExpires(value: Date | string) {
+  const date = value instanceof Date ? value : new Date(value);
+  if (date.getUTCFullYear() >= 2099) {
+    return "Never";
+  }
+  return date.toLocaleDateString();
+}
+
 export function DashboardRecentCodes({ initialQrs, appUrl }: DashboardRecentCodesProps) {
   const [rows, setRows] = useState(initialQrs);
   const sectionRef = useRef<HTMLElement>(null);
@@ -32,7 +40,15 @@ export function DashboardRecentCodes({ initialQrs, appUrl }: DashboardRecentCode
   } | null>(null);
 
   useEffect(() => {
-    setRows(initialQrs);
+    let canceled = false;
+    queueMicrotask(() => {
+      if (!canceled) {
+        setRows(initialQrs);
+      }
+    });
+    return () => {
+      canceled = true;
+    };
   }, [initialQrs]);
 
   useEffect(() => {
@@ -99,7 +115,7 @@ export function DashboardRecentCodes({ initialQrs, appUrl }: DashboardRecentCode
               </div>
               <div>
                 <dt className="font-medium text-zinc-400">Expires</dt>
-                <dd>{new Date(qr.expiresAt).toLocaleDateString()}</dd>
+                <dd>{formatQrExpires(qr.expiresAt)}</dd>
               </div>
             </dl>
             <p className="mt-2 break-words text-xs text-zinc-600">{formatQrDestinationCell(qr)}</p>
@@ -142,7 +158,7 @@ export function DashboardRecentCodes({ initialQrs, appUrl }: DashboardRecentCode
                 <td className="px-2 py-2 text-zinc-700">{qr.contentKind}</td>
                 <td className="px-2 py-2">{qr.status}</td>
                 <td className="px-2 py-2">{formatQrScansDisplay(qr.scanCount, qr.maxScans)}</td>
-                <td className="px-2 py-2">{new Date(qr.expiresAt).toLocaleDateString()}</td>
+                <td className="px-2 py-2">{formatQrExpires(qr.expiresAt)}</td>
                 <td className="max-w-[280px] truncate px-2 py-2 text-zinc-600">
                   {formatQrDestinationCell(qr)}
                 </td>

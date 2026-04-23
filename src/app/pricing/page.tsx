@@ -3,6 +3,7 @@ import Link from "next/link";
 import { BillingButton } from "@/components/billing-button";
 import { PaymentMethodBadges } from "@/components/payment-method-badges";
 import { StripeBillingButton } from "@/components/stripe-billing-button";
+import { SupportEmailButton } from "@/components/support-email-button";
 import { getCurrentSession } from "@/lib/auth/session";
 import { env } from "@/lib/env";
 
@@ -85,6 +86,9 @@ export default async function PricingPage() {
                 Log in to upgrade
               </Link>
             )}
+          </div>
+          <div className="mt-4">
+            <SupportEmailButton variant="button" source="pricing-page" />
           </div>
         </article>
       </section>

@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { PaymentMethodBadges } from "@/components/payment-method-badges";
+import { SupportEmailButton } from "@/components/support-email-button";
 
 export function SiteFooter() {
   const year = new Date().getFullYear();
@@ -32,6 +33,7 @@ export function SiteFooter() {
             <Link href="/login" className="text-zinc-800 underline-offset-4 hover:underline">
               Log in
             </Link>
+            <SupportEmailButton source="footer" />
           </nav>
         </div>
       </div>

@@ -3,6 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
+import { SupportEmailButton } from "@/components/support-email-button";
+
 export function DashboardBillingSync() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -72,7 +74,8 @@ export function DashboardBillingSync() {
           : "border-emerald-200 bg-emerald-50 text-emerald-800"
       }`}
     >
-      {error ?? message}
+      <p>{error ?? message}</p>
+      {error ? <SupportEmailButton source="dashboard-billing-sync" className="mt-1 inline-block" /> : null}
     </div>
   );
 }

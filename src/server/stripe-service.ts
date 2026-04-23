@@ -170,14 +170,19 @@ export async function cancelStripeSubscription(userId: string) {
   }
 
   const stripe = getStripeClient();
-  await stripe.subscriptions.cancel(row.providerSubscriptionId);
+  const updated = await stripe.subscriptions.update(row.providerSubscriptionId, {
+    cancel_at_period_end: true,
+  });
+  const periodEndUnix = subscriptionPeriodEndUnix(updated);
+  const fallbackRenewalDate = row.renewalDate ?? addMonths(new Date(), 1);
 
   await db.subscription.update({
     where: { id: row.id },
-    data: { status: SubscriptionStatus.CANCELED, renewalDate: null },
+    data: {
+      status: SubscriptionStatus.CANCELED,
+      renewalDate: periodEndUnix ? new Date(periodEndUnix * 1000) : fallbackRenewalDate,
+    },
   });
-
-  await removeProAccessIfNoActiveSubscriptions(userId);
 }
 
 function mapStripeStatus(status: Stripe.Subscription.Status): SubscriptionStatus {

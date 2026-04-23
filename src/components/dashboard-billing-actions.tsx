@@ -60,7 +60,8 @@ export function DashboardBillingActions({ activeProvider }: DashboardBillingActi
                 </p>
                 <ul className="mt-4 list-disc space-y-1 pl-5 text-sm text-zinc-700">
                   <li>Your Pro billing will be canceled.</li>
-                  <li>Dashboard will switch back to Free if no other active provider exists.</li>
+                  <li>Pro benefits remain active until your current paid period ends.</li>
+                  <li>After that date, dashboard switches to Free if no other provider is active.</li>
                   <li>You can upgrade again anytime.</li>
                 </ul>
                 <div className="mt-5 flex flex-wrap gap-2">

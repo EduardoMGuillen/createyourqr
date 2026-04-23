@@ -228,6 +228,7 @@ export async function cancelPayPalSubscription(userId: string) {
   if (!latest?.providerSubscriptionId) {
     throw new Error("No active PayPal subscription found.");
   }
+  const fallbackRenewalDate = latest.renewalDate ?? addMonths(new Date(), 1);
 
   const token = await getAccessToken();
   const response = await fetch(
@@ -249,10 +250,8 @@ export async function cancelPayPalSubscription(userId: string) {
 
   await db.subscription.update({
     where: { id: latest.id },
-    data: { status: SubscriptionStatus.CANCELED, renewalDate: null },
+    data: { status: SubscriptionStatus.CANCELED, renewalDate: fallbackRenewalDate },
   });
-
-  await removeProAccessIfNoActiveSubscriptions(userId);
 }
 
 function mapStatus(type: string): SubscriptionStatus | null {
