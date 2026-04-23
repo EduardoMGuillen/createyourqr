@@ -2,6 +2,7 @@
 
 import { Suspense, FormEvent, useRef, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
 
 import { AuthUrlErrorBanner } from "@/components/auth-url-error-banner";
@@ -17,6 +18,7 @@ type RegisterResponse = {
 };
 
 export default function RegisterPage() {
+  const searchParams = useSearchParams();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
@@ -26,6 +28,32 @@ export default function RegisterPage() {
     useState<ResendEmailFailureCode | null>(null);
   const [continuing, setContinuing] = useState(false);
   const pendingPasswordRef = useRef("");
+  const fromInstantQr = searchParams.get("from") === "instant-qr";
+  const instantTarget = searchParams.get("target")?.trim() ?? "";
+
+  function normalizeUrl(raw: string) {
+    if (!raw) return "";
+    if (/^https?:\/\//i.test(raw)) return raw;
+    return `https://${raw}`;
+  }
+
+  async function createInstantQrForNewAccount() {
+    if (!fromInstantQr || !instantTarget) return;
+    const destinationUrl = normalizeUrl(instantTarget);
+    if (!destinationUrl) return;
+    const response = await fetch("/api/qrs", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        contentKind: "URL",
+        destinationUrl,
+      }),
+    });
+    if (!response.ok) {
+      const body = (await response.json().catch(() => null)) as { error?: string } | null;
+      throw new Error(body?.error ?? "Could not save your QR automatically.");
+    }
+  }
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -73,23 +101,39 @@ export default function RegisterPage() {
     }
 
     setContinuing(true);
-    const signInResult = await signIn("credentials", {
-      email,
-      password,
-      redirect: false,
-      callbackUrl: "/dashboard",
-    });
+    try {
+      const signInResult = await signIn("credentials", {
+        email,
+        password,
+        redirect: false,
+        callbackUrl: "/dashboard",
+      });
 
-    setContinuing(false);
-    pendingPasswordRef.current = "";
+      pendingPasswordRef.current = "";
 
-    if (signInResult?.error) {
-      setError("Account created but sign-in failed. Try logging in.");
-      setShowSuccess(false);
-      return;
-    }
-    if (signInResult?.ok) {
-      window.location.assign(signInResult.url ?? "/dashboard");
+      if (signInResult?.error) {
+        setError("Account created but sign-in failed. Try logging in.");
+        setShowSuccess(false);
+        return;
+      }
+      if (signInResult?.ok) {
+        try {
+          await createInstantQrForNewAccount();
+          const nextUrl = fromInstantQr ? "/dashboard?instantQr=saved" : signInResult.url ?? "/dashboard";
+          window.location.assign(nextUrl);
+          return;
+        } catch (createError) {
+          const message =
+            createError instanceof Error
+              ? createError.message
+              : "Account created, but the QR could not be saved automatically.";
+          setError(message);
+          setShowSuccess(false);
+          return;
+        }
+      }
+    } finally {
+      setContinuing(false);
     }
   }
 
@@ -108,6 +152,11 @@ export default function RegisterPage() {
       <p className="mt-2 text-sm text-zinc-600">
         Start free with 5 days and 50 scans per QR.
       </p>
+      {fromInstantQr ? (
+        <p className="mt-2 rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-900">
+          We will save the QR you just created into your new dashboard right after sign-up.
+        </p>
+      ) : null}
       <Suspense fallback={null}>
         <AuthUrlErrorBanner />
       </Suspense>

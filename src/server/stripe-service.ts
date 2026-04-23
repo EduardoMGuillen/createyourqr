@@ -23,7 +23,29 @@ function getStripeClient() {
 }
 
 async function resolveStripeProPriceId() {
-  if (env.stripeProPriceId) return env.stripeProPriceId;
+  if (env.stripeProPriceId) {
+    if (env.stripeProPriceId.startsWith("price_")) {
+      return env.stripeProPriceId;
+    }
+    // DX guardrail: many dashboards show product ids first (`prod_...`), but checkout needs `price_...`.
+    if (env.stripeProPriceId.startsWith("prod_")) {
+      const stripe = getStripeClient();
+      const priceList = await stripe.prices.list({
+        product: env.stripeProPriceId,
+        active: true,
+        recurring: { interval: "month" },
+        limit: 10,
+      });
+      const recurringPrice = priceList.data.find((item) => item.type === "recurring");
+      if (!recurringPrice) {
+        throw new Error(
+          "STRIPE_PRO_PRICE_ID points to a product without active monthly recurring prices.",
+        );
+      }
+      return recurringPrice.id;
+    }
+    throw new Error("STRIPE_PRO_PRICE_ID must start with price_ (or prod_ for fallback lookup).");
+  }
 
   const stripe = getStripeClient();
   const priceList = await stripe.prices.list({
