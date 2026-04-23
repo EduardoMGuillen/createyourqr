@@ -36,6 +36,17 @@ export default async function DashboardPage() {
     orderBy: { updatedAt: "desc" },
     select: { provider: true },
   });
+  const latestSubscription = await db.subscription.findFirst({
+    where: { userId: session.user.id },
+    orderBy: { updatedAt: "desc" },
+    select: { provider: true, status: true, renewalDate: true },
+  });
+  const proEndsAt =
+    latestSubscription?.status === SubscriptionStatus.CANCELED &&
+    latestSubscription.renewalDate &&
+    latestSubscription.renewalDate > new Date()
+      ? latestSubscription.renewalDate
+      : null;
   const activeProvider =
     activeSubscription?.provider === "stripe" || activeSubscription?.provider === "paypal"
       ? activeSubscription.provider
@@ -50,6 +61,12 @@ export default async function DashboardPage() {
           <p className="mt-1 text-sm text-zinc-600">
             Signed in as {session.user.email} - Plan: {session.user.planCode}
           </p>
+          {proEndsAt ? (
+            <p className="mt-1 text-sm text-amber-700">
+              Your {latestSubscription?.provider} subscription is canceled and remains active until{" "}
+              {proEndsAt.toLocaleDateString()}.
+            </p>
+          ) : null}
         </div>
         <div className="flex items-center gap-3">
           <DashboardBillingResync />
