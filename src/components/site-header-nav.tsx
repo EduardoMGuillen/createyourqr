@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import Link from "next/link";
 
+import { LanguageSelector } from "@/components/language-selector";
 import { LogoutButton } from "@/components/logout-button";
 
 const linkClass =
@@ -84,6 +85,7 @@ export function SiteHeaderNav({ isAuthenticated }: SiteHeaderNavProps) {
     <div ref={rootRef} className="relative flex shrink-0 items-center">
       {/* Desktop */}
       <div className="hidden flex-wrap items-center justify-end gap-3 text-sm md:flex">
+        <LanguageSelector />
         <Link href="/" className="text-zinc-700 hover:text-zinc-900">
           Home
         </Link>
@@ -143,6 +145,9 @@ export function SiteHeaderNav({ isAuthenticated }: SiteHeaderNavProps) {
           className="absolute right-0 top-full z-50 mt-2 w-[min(100vw-3rem,16rem)] rounded-lg border border-zinc-200 bg-white py-2 shadow-lg md:hidden"
         >
           <div className="flex flex-col">{navLinks}</div>
+          <div className="border-t border-zinc-200 px-3 pt-2">
+            <LanguageSelector />
+          </div>
         </div>
       ) : null}
     </div>

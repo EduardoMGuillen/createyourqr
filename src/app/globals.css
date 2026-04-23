@@ -18,6 +18,17 @@ body {
   font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
 }
 
+/* Keep Google Translate banner from shifting layout. */
+body {
+  top: 0 !important;
+}
+
+.skiptranslate iframe,
+.goog-te-banner-frame,
+#goog-gt-tt {
+  display: none !important;
+}
+
 @keyframes landing-float {
   0%,
   100% {
