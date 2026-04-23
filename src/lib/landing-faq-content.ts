@@ -6,27 +6,27 @@ export const landingFaqItems = [
   },
   {
     q: "How is a barcode different from a QR code on CreateYourQR?",
-    a: "Our linear barcodes (e.g. CODE128, EAN-13) draw your value directly in the bars. Dynamic QRs instead point to a URL you can change later; pick the format that fits retail vs. marketing.",
+    a: "Barcodes encode fixed data directly in bars. Dynamic QR codes point to an editable hosted link, so you can update destinations later without reprinting.",
   },
   {
-    q: "Can I generate a WiFi QR code?",
-    a: "Yes. Choose WPA/WEP/nopass, SSID, and password where applicable. Guests scan once to join — great for hospitality and offices.",
+    q: "Can I generate a QR without signing up first?",
+    a: "Yes. You can generate and preview a dynamic QR instantly on the landing page. Create an account afterward to keep it active and manage scans.",
   },
   {
-    q: "What is the link page / link-in-bio option?",
-    a: "Visitors land on a simple page with your title, optional subtitle, and button links — like a micro landing page tied to your QR slug.",
+    q: "Why is editable QR important for printed campaigns?",
+    a: "Printed materials outlive most campaigns. Editable QR links let you change destinations later so posters, menus, and packaging stay useful.",
   },
   {
-    q: "Where are plan limits, durations, and billing rules documented?",
-    a: "Exact quotas (including how long a code stays active and how many scans it can receive before it may pause), what happens next for people who scan it, and how Pro restores continuous use, are spelled out in our Terms of Service under “Free and paid plans.” The Pricing page summarizes what you pay for Pro.",
+    q: "What does 'trackable QR code' mean?",
+    a: "Trackable means you can monitor scan activity over time and detect when campaigns are working. This helps prioritize channels and keep high-value QRs active.",
+  },
+  {
+    q: "Will my trial QR expire?",
+    a: "Trial QRs are time-limited. You will see expiration warnings in the app so you can activate your account before printed codes lose continuity.",
   },
   {
     q: "Can I customize how the QR looks?",
-    a: "Yes — pick dot and corner styles, colors, and an optional logo. We store your style JSON so exports from the dashboard match what you designed.",
-  },
-  {
-    q: "How do I upgrade to Pro?",
-    a: "Open Pricing from the site header or your dashboard and complete PayPal subscription checkout when you want a code to keep resolving without interruption. Eligibility and renewal terms are in our Terms of Service.",
+    a: "Yes. You can style colors, dots, corners, and optionally add a logo so your QR stays on-brand while remaining scannable.",
   },
   {
     q: "Do you support Google sign-in?",

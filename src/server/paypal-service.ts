@@ -1,8 +1,13 @@
 import { addMonths } from "date-fns";
-import { PlanCode, QrStatus, SubscriptionStatus } from "@prisma/client";
+import { SubscriptionStatus } from "@prisma/client";
 
 import { db } from "@/lib/db";
 import { env } from "@/lib/env";
+import {
+  assertNoOtherActiveProvider,
+  grantProAccess,
+  removeProAccessIfNoActiveSubscriptions,
+} from "@/server/subscription-access";
 
 type PayPalCreateSubscriptionResponse = {
   id: string;
@@ -33,6 +38,8 @@ export async function getAccessToken() {
 }
 
 export async function createPaypalSubscription(userId: string) {
+  await assertNoOtherActiveProvider(userId, "paypal");
+
   if (!env.paypalPlanId) {
     throw new Error("PAYPAL_PLAN_ID is not configured.");
   }
@@ -122,6 +129,8 @@ export async function completeSmartButtonSubscription(params: {
   userId: string;
   subscriptionId: string;
 }) {
+  await assertNoOtherActiveProvider(params.userId, "paypal");
+
   const existing = await db.subscription.findUnique({
     where: { providerSubscriptionId: params.subscriptionId },
   });
@@ -174,20 +183,7 @@ export async function completeSmartButtonSubscription(params: {
     },
   });
 
-  await db.$transaction([
-    db.user.update({
-      where: { id: params.userId },
-      data: { planCode: PlanCode.PRO },
-    }),
-    db.qrCode.updateMany({
-      where: { userId: params.userId },
-      data: {
-        status: QrStatus.ACTIVE,
-        maxScans: 999999999,
-        expiresAt: addMonths(new Date(), 120),
-      },
-    }),
-  ]);
+  await grantProAccess(params.userId);
 }
 
 function mapStatus(type: string): SubscriptionStatus | null {
@@ -240,33 +236,19 @@ export async function processPayPalWebhook(event: PayPalWebhookEvent) {
   if (!subscription) return;
 
   const isPro = mappedStatus === SubscriptionStatus.ACTIVE;
-  await db.$transaction([
-    db.subscription.update({
-      where: { id: subscription.id },
-      data: {
-        status: mappedStatus,
-        renewalDate: isPro ? addMonths(new Date(), 1) : null,
-      },
-    }),
-    db.user.update({
-      where: { id: subscription.userId },
-      data: {
-        planCode: isPro ? PlanCode.PRO : PlanCode.FREE,
-      },
-    }),
-    db.qrCode.updateMany({
-      where: { userId: subscription.userId },
-      data: isPro
-        ? {
-            status: QrStatus.ACTIVE,
-            maxScans: 999999999,
-            expiresAt: addMonths(new Date(), 120),
-          }
-        : {
-            maxScans: 50,
-          },
-    }),
-  ]);
+  await db.subscription.update({
+    where: { id: subscription.id },
+    data: {
+      status: mappedStatus,
+      renewalDate: isPro ? addMonths(new Date(), 1) : null,
+    },
+  });
+
+  if (isPro) {
+    await grantProAccess(subscription.userId);
+  } else {
+    await removeProAccessIfNoActiveSubscriptions(subscription.userId);
+  }
 }
 
 export async function verifyPayPalWebhookSignature(

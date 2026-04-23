@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { getCurrentSession } from "@/lib/auth/session";
-import { createPaypalSubscription } from "@/server/paypal-service";
+import { createStripeCheckoutSession } from "@/server/stripe-service";
 
 export async function POST() {
   const session = await getCurrentSession();
@@ -10,14 +10,11 @@ export async function POST() {
   }
 
   try {
-    const created = await createPaypalSubscription(session.user.id);
+    const created = await createStripeCheckoutSession(session.user.id);
     return NextResponse.json(created);
   } catch (error) {
-    console.error(error);
-    const message = error instanceof Error ? error.message : "Could not start PayPal checkout.";
-    return NextResponse.json(
-      { error: message },
-      { status: 400 },
-    );
+    const message =
+      error instanceof Error ? error.message : "Could not start Stripe checkout.";
+    return NextResponse.json({ error: message }, { status: 400 });
   }
 }

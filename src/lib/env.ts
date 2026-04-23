@@ -34,6 +34,12 @@ export const env = {
    * `PAYPAL_ENVIRONMENT === "live"` vs sandbox.
    */
   paypalBaseUrl: resolvePayPalBaseUrl(),
+  stripeSecretKey: process.env.STRIPE_SECRET_KEY?.trim() ?? "",
+  stripeWebhookSecret: process.env.STRIPE_WEBHOOK_SECRET?.trim() ?? "",
+  stripePublishableKey: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY?.trim() ?? "",
+  stripeProProductId:
+    process.env.STRIPE_PRO_PRODUCT_ID?.trim() || "prod_UO6GGPKOScHuE6",
+  stripeProPriceId: process.env.STRIPE_PRO_PRICE_ID?.trim() ?? "",
 };
 
 function resolvePayPalBaseUrl(): string {

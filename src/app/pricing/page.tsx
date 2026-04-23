@@ -1,6 +1,8 @@
 import Link from "next/link";
 
 import { BillingButton } from "@/components/billing-button";
+import { PaymentMethodBadges } from "@/components/payment-method-badges";
+import { StripeBillingButton } from "@/components/stripe-billing-button";
 import { getCurrentSession } from "@/lib/auth/session";
 import { env } from "@/lib/env";
 
@@ -47,14 +49,34 @@ export default async function PricingPage() {
             <li>No 5-day expiration</li>
             <li>Priority support for campaigns</li>
           </ul>
+          <div className="mt-5">
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-400">
+              Trusted payment methods
+            </p>
+            <PaymentMethodBadges variant="dark" />
+          </div>
           <div className="mt-6">
             {session?.user ? (
-              <BillingButton
-                paypalClientId={env.paypalBrowserClientId}
-                paypalPlanId={env.paypalPlanId}
-                userId={session.user.id}
-                variant="dark"
-              />
+              <div className="space-y-5">
+                <div>
+                  <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-400">
+                    Stripe
+                  </p>
+                  <StripeBillingButton variant="dark" />
+                </div>
+                <div className="h-px bg-zinc-800" />
+                <div>
+                  <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-400">
+                    PayPal
+                  </p>
+                  <BillingButton
+                    paypalClientId={env.paypalBrowserClientId}
+                    paypalPlanId={env.paypalPlanId}
+                    userId={session.user.id}
+                    variant="dark"
+                  />
+                </div>
+              </div>
             ) : (
               <Link
                 href="/login"

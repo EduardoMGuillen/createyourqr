@@ -19,16 +19,16 @@ export function buildLandingJsonLd(origin: string) {
         url,
         logo: { "@type": "ImageObject", url: logo },
         description:
-          "CreateYourQR builds dynamic QR codes, styled static QR modules, linear barcodes, and link-in-bio pages for marketers and small businesses.",
+          "CreateYourQR builds dynamic, trackable, and editable QR codes for creators, businesses, and event teams.",
       },
       {
         "@type": "WebPage",
         "@id": `${url}/#webpage`,
         url,
-        name: "CreateYourQR — QR code & barcode generator",
+        name: "CreateYourQR — Dynamic QR code generator",
         isPartOf: { "@id": `${url}/${websiteId}` },
         description:
-          "Create dynamic QR codes, WiFi QRs, contact payloads, linear barcodes, and link-in-bio pages. Plans and quotas are defined in the Terms of Service.",
+          "Create trackable and editable dynamic QR codes, monitor scan activity, and keep printed campaigns reliable over time.",
         inLanguage: "en",
         about: { "@id": `${url}/${softwareId}` },
       },
@@ -40,7 +40,7 @@ export function buildLandingJsonLd(origin: string) {
         publisher: { "@id": `${url}/${organizationId}` },
         inLanguage: "en",
         description:
-          "QR and barcode generator: dynamic URL redirects, WiFi QR, email/tel/SMS, plain text, CODE128/EAN-13 barcodes, and customizable link pages. Plan rules in Terms of Service.",
+          "Dynamic QR code generator with editable links, scan visibility, and trial-based activation for print campaigns.",
         potentialAction: {
           "@type": "RegisterAction",
           target: {
@@ -64,12 +64,11 @@ export function buildLandingJsonLd(origin: string) {
         },
         featureList: [
           "Dynamic QR codes with editable destination URL",
+          "Trackable QR code analytics and scan visibility",
+          "Trial urgency and lifecycle messaging for activation",
           "Custom QR styling: colors, dot shapes, corner styles, optional logo",
-          "WiFi network QR strings",
-          "Email, phone, SMS, and plain text QR payloads",
-          "Linear barcode generation (e.g. CODE128, EAN-13)",
-          "Link-in-bio style pages served at /qr/slug",
-          "Scan insights and lifecycle handling for each hosted code",
+          "Hosted slugs for long-term printed QR usability",
+          "Reliable status handling for active and expired codes",
         ],
       },
       {
