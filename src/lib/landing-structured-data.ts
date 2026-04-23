@@ -40,7 +40,7 @@ export function buildLandingJsonLd(origin: string) {
         publisher: { "@id": `${url}/${organizationId}` },
         inLanguage: "en",
         description:
-          "Dynamic QR code generator with editable links, scan visibility, and trial-based activation for print campaigns.",
+          "Dynamic QR code generator with editable links, scan visibility, and account-based activation for print campaigns.",
         potentialAction: {
           "@type": "RegisterAction",
           target: {
@@ -65,10 +65,10 @@ export function buildLandingJsonLd(origin: string) {
         featureList: [
           "Dynamic QR codes with editable destination URL",
           "Trackable QR code analytics and scan visibility",
-          "Trial urgency and lifecycle messaging for activation",
+          "Post-generation account activation prompts",
           "Custom QR styling: colors, dot shapes, corner styles, optional logo",
           "Hosted slugs for long-term printed QR usability",
-          "Reliable status handling for active and expired codes",
+          "Reliable status handling for active campaign codes",
         ],
       },
       {

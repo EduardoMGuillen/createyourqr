@@ -18,6 +18,7 @@ export function InstantQrDemo() {
   const [destinationUrl, setDestinationUrl] = useState("");
   const [generatedUrl, setGeneratedUrl] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
+  const [showAccountPrompt, setShowAccountPrompt] = useState(false);
 
   const canGenerate = destinationUrl.trim().length > 0 && !isGenerating;
   const hasResult = generatedUrl.length > 0;
@@ -25,6 +26,10 @@ export function InstantQrDemo() {
   const safePreviewUrl = useMemo(() => {
     return hasResult ? generatedUrl : "https://createyourqr.com/your-campaign";
   }, [generatedUrl, hasResult]);
+  const registerHref = useMemo(() => {
+    if (!generatedUrl) return "/register";
+    return `/register?from=instant-qr&target=${encodeURIComponent(generatedUrl)}`;
+  }, [generatedUrl]);
 
   async function onGenerate(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -35,6 +40,7 @@ export function InstantQrDemo() {
     window.setTimeout(() => {
       setGeneratedUrl(normalized);
       setIsGenerating(false);
+      setShowAccountPrompt(true);
     }, 180);
   }
 
@@ -77,7 +83,7 @@ export function InstantQrDemo() {
             disabled={!canGenerate}
             className="rounded-xl bg-violet-600 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-violet-900/20 transition hover:bg-violet-500 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {isGenerating ? "Generating..." : "Generate QR"}
+            {isGenerating ? "Creating..." : "Create QR"}
           </button>
         </div>
       </form>
@@ -91,12 +97,11 @@ export function InstantQrDemo() {
             <span className="rounded-full bg-sky-50 px-3 py-1 text-sky-700">Scans detected: 3 today</span>
             <span className="rounded-full bg-violet-50 px-3 py-1 text-violet-700">Editable anytime</span>
           </div>
-          <p className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">
-            Trial preview: this QR is set to expire in <strong>3 days</strong> unless you activate your
-            free account.
+          <p className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs text-emerald-900">
+            Create your account to save this QR in your dashboard and keep editing links anytime.
           </p>
           <p className="text-xs text-zinc-600">
-            If this QR is printed and expires, future scans can fail during live campaigns.
+            Account owners can monitor scans, update destinations, and keep campaign links organized.
           </p>
 
           {hasResult ? (
@@ -110,10 +115,10 @@ export function InstantQrDemo() {
               </button>
               {/* Conversion: secondary CTA appears only after value is delivered. */}
               <Link
-                href="/register"
+                href={registerHref}
                 className="rounded-xl bg-zinc-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-zinc-800"
               >
-                Keep this QR active after trial
+                Create account and keep this QR active
               </Link>
             </div>
           ) : (
@@ -121,6 +126,43 @@ export function InstantQrDemo() {
           )}
         </div>
       </div>
+
+      {showAccountPrompt ? (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/55 p-4 backdrop-blur-sm"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="activate-qr-title"
+        >
+          <div className="w-full max-w-md rounded-2xl border border-zinc-200 bg-white p-6 shadow-2xl">
+            <p className="inline-flex rounded-full bg-violet-100 px-3 py-1 text-xs font-semibold text-violet-700">
+              QR generated successfully
+            </p>
+            <h3 id="activate-qr-title" className="mt-3 text-xl font-semibold text-zinc-900">
+              Create your account to activate this QR
+            </h3>
+            <p className="mt-2 text-sm text-zinc-600">
+              You already generated value. Finish in one step to store it in your dashboard and edit it
+              any time.
+            </p>
+            <div className="mt-5 flex flex-wrap gap-2">
+              <Link
+                href={registerHref}
+                className="rounded-xl bg-violet-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-violet-500"
+              >
+                Create free account
+              </Link>
+              <button
+                type="button"
+                onClick={() => setShowAccountPrompt(false)}
+                className="rounded-xl border border-zinc-300 px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50"
+              >
+                Continue exploring
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </section>
   );
 }

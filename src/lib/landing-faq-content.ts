@@ -21,8 +21,8 @@ export const landingFaqItems = [
     a: "Trackable means you can monitor scan activity over time and detect when campaigns are working. This helps prioritize channels and keep high-value QRs active.",
   },
   {
-    q: "Will my trial QR expire?",
-    a: "Trial QRs are time-limited. You will see expiration warnings in the app so you can activate your account before printed codes lose continuity.",
+    q: "What happens after I generate a QR without signing up?",
+    a: "Right after generation we prompt you to create an account so the QR can be saved in your dashboard and managed long term.",
   },
   {
     q: "Can I customize how the QR looks?",

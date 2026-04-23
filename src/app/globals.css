@@ -18,6 +18,41 @@ body {
   font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
 }
 
+@keyframes landing-float {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(0, -12px, 0) scale(1.03);
+  }
+}
+
+.landing-blob {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(48px);
+  opacity: 0.28;
+  animation: landing-float 8s ease-in-out infinite;
+}
+
+.landing-blob-violet {
+  top: -4rem;
+  left: -3rem;
+  height: 16rem;
+  width: 16rem;
+  background: radial-gradient(circle, #a78bfa 0%, rgba(167, 139, 250, 0) 70%);
+}
+
+.landing-blob-sky {
+  right: -2rem;
+  top: 3rem;
+  height: 14rem;
+  width: 14rem;
+  background: radial-gradient(circle, #38bdf8 0%, rgba(56, 189, 248, 0) 70%);
+  animation-delay: 1.6s;
+}
+
 /* iOS Safari: avoid auto-zoom on focus when inputs use <16px (e.g. text-sm). */
 @media (max-width: 767px) {
   textarea,

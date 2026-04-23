@@ -41,10 +41,14 @@ export default function Home() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <main className="flex flex-1 flex-col overflow-x-hidden bg-zinc-50">
-        <section className="border-b border-zinc-200 bg-gradient-to-b from-violet-100 via-white to-white">
-          <div className="mx-auto grid w-full max-w-6xl gap-10 px-6 py-14 md:py-20 lg:grid-cols-2 lg:items-center">
+        <section className="relative border-b border-zinc-200 bg-gradient-to-b from-violet-100 via-fuchsia-50 to-white">
+          <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
+            <div className="landing-blob landing-blob-violet" />
+            <div className="landing-blob landing-blob-sky" />
+          </div>
+          <div className="relative mx-auto grid w-full max-w-6xl gap-10 px-6 py-14 md:py-20 lg:grid-cols-2 lg:items-center">
             <div className="space-y-5">
-              <p className="inline-flex rounded-full border border-violet-200 bg-violet-50 px-3 py-1 text-xs font-semibold text-violet-700">
+              <p className="inline-flex animate-pulse rounded-full border border-violet-200 bg-violet-50 px-3 py-1 text-xs font-semibold text-violet-700">
                 Dynamic QR code generator for live campaigns
               </p>
               {/* SEO: keyword appears in the primary heading for stronger relevance. */}
@@ -89,8 +93,8 @@ export default function Home() {
                 <div className="rounded-xl border border-violet-200 bg-violet-50 px-4 py-3 text-violet-800">
                   Editable anytime: destination updated 2h ago
                 </div>
-                <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-amber-900">
-                  Trial timer: 3 days left to keep this QR active
+                <div className="rounded-xl border border-indigo-200 bg-indigo-50 px-4 py-3 text-indigo-900">
+                  Account connected: protected in your dashboard
                 </div>
               </div>
             </div>
@@ -102,7 +106,10 @@ export default function Home() {
           <InstantQrDemo />
         </section>
 
-        <section id="why-createyourqr" className="border-y border-zinc-200 bg-white py-14 md:py-16">
+        <section
+          id="why-createyourqr"
+          className="border-y border-zinc-200 bg-gradient-to-b from-white to-violet-50/40 py-14 md:py-16"
+        >
           <div className="mx-auto w-full max-w-6xl px-6">
             <h2 className="text-3xl font-bold tracking-tight text-zinc-900 md:text-4xl">
               Why CreateYourQR outperforms typical free QR tools
@@ -130,7 +137,10 @@ export default function Home() {
                   body: "Hosted slugs and status controls reduce the risk of dead links in live campaigns.",
                 },
               ].map((feature) => (
-                <article key={feature.title} className="rounded-2xl border border-zinc-200 bg-zinc-50 p-5">
+                <article
+                  key={feature.title}
+                  className="rounded-2xl border border-zinc-200 bg-zinc-50 p-5 transition duration-200 hover:-translate-y-1 hover:border-violet-200 hover:shadow-lg hover:shadow-violet-900/10"
+                >
                   <span
                     aria-hidden
                     className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-violet-100 text-violet-700"
@@ -145,7 +155,7 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="bg-zinc-50 py-14 md:py-16">
+        <section className="bg-gradient-to-b from-zinc-50 to-sky-50/30 py-14 md:py-16">
           <div className="mx-auto max-w-6xl px-6">
             <h2 className="text-3xl font-bold tracking-tight text-zinc-900 md:text-4xl">
               Social proof and trust signals
@@ -154,15 +164,15 @@ export default function Home() {
               Add confidence before sign-up by showing proof of usage and concrete outcomes.
             </p>
             <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              <div className="rounded-2xl border border-zinc-200 bg-white p-5">
+              <div className="rounded-2xl border border-zinc-200 bg-white p-5 transition duration-200 hover:-translate-y-1 hover:shadow-lg hover:shadow-zinc-900/10">
                 <p className="text-3xl font-bold text-zinc-900">45,000+</p>
                 <p className="mt-1 text-sm text-zinc-600">QR codes generated</p>
               </div>
-              <div className="rounded-2xl border border-zinc-200 bg-white p-5">
+              <div className="rounded-2xl border border-zinc-200 bg-white p-5 transition duration-200 hover:-translate-y-1 hover:shadow-lg hover:shadow-zinc-900/10">
                 <p className="text-3xl font-bold text-zinc-900">1.2M+</p>
                 <p className="mt-1 text-sm text-zinc-600">Scans tracked</p>
               </div>
-              <div className="rounded-2xl border border-zinc-200 bg-white p-5 sm:col-span-2">
+              <div className="rounded-2xl border border-zinc-200 bg-white p-5 transition duration-200 hover:-translate-y-1 hover:shadow-lg hover:shadow-zinc-900/10 sm:col-span-2">
                 <p className="text-sm font-semibold text-zinc-900">
                   Used by creators, businesses, and events
                 </p>
@@ -184,11 +194,15 @@ export default function Home() {
                   author: "Restaurant owner",
                 },
                 {
-                  quote: "The trial urgency made rollout easy while we validated campaign response.",
+                  quote:
+                    "The no-friction generator got us live quickly, and account setup kept everything organized.",
                   author: "Creator brand manager",
                 },
               ].map((item) => (
-                <blockquote key={item.author} className="rounded-2xl border border-zinc-200 bg-white p-5">
+                <blockquote
+                  key={item.author}
+                  className="rounded-2xl border border-zinc-200 bg-white p-5 transition duration-200 hover:-translate-y-1 hover:border-violet-200 hover:shadow-lg hover:shadow-violet-900/10"
+                >
                   <p className="text-sm leading-relaxed text-zinc-700">“{item.quote}”</p>
                   <cite className="mt-3 block text-xs font-semibold uppercase tracking-wide text-zinc-500 not-italic">
                     {item.author}
@@ -203,8 +217,8 @@ export default function Home() {
           <div className="rounded-3xl bg-zinc-900 px-6 py-10 text-white md:px-10">
             <h2 className="text-3xl font-bold tracking-tight">Keep every printed QR working</h2>
             <p className="mt-3 max-w-2xl text-sm text-zinc-300 md:text-base">
-              Generate instantly, validate campaign response, and protect live scans before your trial
-              window ends.
+              Generate instantly, validate campaign response, and keep every QR controlled from one
+              account.
             </p>
             <div className="mt-7 flex flex-wrap gap-3">
               <Link
@@ -227,7 +241,7 @@ export default function Home() {
           <div className="mx-auto max-w-3xl px-6">
             <h2 className="text-center text-3xl font-bold text-zinc-900">Questions & answers</h2>
             <p className="mt-2 text-center text-sm text-zinc-600">
-              Product and trial details below; full policy details live in our{" "}
+              Product details below; full policy details live in our{" "}
               <Link href="/terms" className="font-medium text-zinc-900 underline underline-offset-2">
                 Terms of Service
               </Link>
